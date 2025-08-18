@@ -271,7 +271,7 @@
 
 // src/layout/DashboardLayout.jsx
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import Sidebar from "../sidebar/Sidebar";
 import { FiMenu, FiX, FiBell } from "react-icons/fi";
 import AccountToggle from "../sidebar/AccountToggle";
@@ -292,13 +292,15 @@ const DashboardLayout = () => {
           >
             {isOpen ? <FiX size={20} /> : <FiMenu size={20} />}
           </button>
-          <div className="flex items-center gap-1">
+
+          {/* logo */}
+          <Link to="/" className="flex items-center gap-1">
             <img src="/logo.png" alt="Logo" className="h-12 w-auto object-contain" />
             <div>
               <h1 className="text-lg font-semibold">Taxita</h1>
               <p className="text-sm text-gray-500">Accountant on your driving seat</p>
             </div>
-         </div>
+         </Link>
         </div>
 
         {/* Middle section: Search */}

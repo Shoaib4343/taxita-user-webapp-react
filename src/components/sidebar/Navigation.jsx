@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { logoutApi } from "../../services/authService";
 import { useState } from "react";
+import { FaArrowDown, FaCalendarAlt, FaCar, FaChartPie, FaDollarSign, FaFileAlt, FaFolderOpen, FaIdCard, FaPercentage, FaRegCalendarCheck, FaShoppingCart, FaUpload } from "react-icons/fa";
 
 const Navigation = ({ collapsed }) => {
   const location = useLocation();
@@ -16,6 +17,19 @@ const Navigation = ({ collapsed }) => {
     { to: "/dashboard", label: "Dashboard", icon: <FiHome /> },
     { to: "/dashboard/settings", label: "Settings", icon: <FiSettings /> },
     { to: "/dashboard/profile", label: "Profile", icon: <FiUser /> },
+    { to: "/dashboard/income", label: "Income", icon: <FaDollarSign /> },
+    { to: "/dashboard/weekly-income", label: "Weekly Income", icon: <FaCalendarAlt /> },
+    { to: "/dashboard/expenses", label: "Expenses", icon: <FaArrowDown /> },
+    { to: "/dashboard/weekly-expenses", label: "Weekly Expenses", icon: <FaCalendarAlt /> },
+    { to: "/dashboard/percentage-adjustment", label: "Adjustment", icon: <FaPercentage /> },
+    { to: "/dashboard/vehicles", label: "Vehicles", icon: <FaCar /> },
+    { to: "/dashboard/rolling-pl", label: "Profit & Loss", icon: <FaChartPie /> },
+    { to: "/dashboard/self-assessment", label: "Self Assessment Returns", icon: <FaFileAlt /> },
+    { to: "/dashboard/financial-statements", label: "Statements", icon: <FaFolderOpen /> },
+    { to: "/dashboard/uploaded-documents", label: "Documents", icon: <FaUpload /> },
+    { to: "/dashboard/id-documents", label: "ID Verification", icon: <FaIdCard /> },
+    { to: "/dashboard/buy-renew-plan", label: "Buy / Renew Plan", icon: <FaShoppingCart /> },
+    { to: "/dashboard/tax-year", label: "Tax Year", icon: <FaRegCalendarCheck /> },
   ];
 
   const handleLogout = async () => {
