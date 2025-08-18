@@ -93,6 +93,7 @@ const dashboardData = [
     description: "All your financial statements",
     trend: "down",
     pillText: "0% down",
+    path: '/dashboard/financial-statements'
   },
   {
     icon: FaUpload,
@@ -101,6 +102,7 @@ const dashboardData = [
     description: "Your uploaded documents",
     trend: "up",
     pillText: "0% up",
+    path: '/dashboard/uploaded-documents'
   },
   {
     icon: FaIdCard,
@@ -109,14 +111,16 @@ const dashboardData = [
     description: "Money laundering documents",
     trend: "up",
     pillText: "0% up",
+    path: '/dashboard/id-documents'
   },
   {
     icon: FaShoppingCart,
-    title: "Renew Plan",
-    value: "From £0.00/yr",
+    title: "Buy / Renew Plan",
+    value: "From £0/yr",
     description: "Buy or renew your Taxita plan",
     trend: "down",
     pillText: "0% down",
+    path: '/dashboard/buy-renew-plan'
   },
   {
     icon: FaRegCalendarCheck,
@@ -125,6 +129,7 @@ const dashboardData = [
     description: "Finalise this year’s tax filing",
     trend: "up",
     pillText: "Tax open",
+    path: '/dashboard/tax-year'
   },
 ];
 

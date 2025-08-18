@@ -19,6 +19,11 @@ import PercentageAdjustment from "./pages/PercentageAdjustment";
 import Vehicles from "./pages/Vehicles";
 import RollingPL from "./pages/RollingPL";
 import SelfAssessmentPage from "./pages/SelfAssessmentPage";
+import FinancialStatements from "./pages/FinancialStatements";
+import UploadedDocuments from "./pages/UploadedDocuments";
+import IDDocuments from "./pages/IDDocuments";
+import BuyPlan from "./pages/BuyPlan";
+import FinalizeTaxYear from "./pages/FinalizeTaxYear";
 
 const App = () => {
   return (
@@ -50,6 +55,11 @@ const App = () => {
           <Route path="vehicles" element={<Vehicles />} />
           <Route path="rolling-pl" element={<RollingPL />} />
           <Route path="self-assessment" element={<SelfAssessmentPage />} />
+          <Route path="financial-statements" element={<FinancialStatements />} />
+          <Route path="uploaded-documents" element={<UploadedDocuments />} />
+          <Route path="id-documents" element={<IDDocuments />} />
+          <Route path="buy-renew-plan" element={<BuyPlan />} />
+          <Route path="tax-year" element={<FinalizeTaxYear />} />
 
         </Route>
       </Route>
