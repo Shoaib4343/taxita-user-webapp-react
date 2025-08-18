@@ -2,7 +2,9 @@ import { useState } from "react";
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { registerApi } from "../services/authService";
+import toast from "react-hot-toast";
 
 const Signup = () => {
   // Function to format date into "D Month YYYY"
@@ -15,20 +17,22 @@ const Signup = () => {
     });
   };
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    tradingYearStart: "2025-04-06", // stored in ISO format
-    tradingYearEnd: "2026-04-05",
+    first_name: "",
+    last_name: "",
+    year_start: "2025-04-06", // stored in ISO format
+    year_end: "2026-04-05",
     email: "",
     password: "",
     confirmPassword: "",
     terms: false,
+    user_type: "personal",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -41,22 +45,23 @@ const Signup = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.firstName.trim())
-      newErrors.firstName = "First Name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last Name is required";
+    if (!formData.first_name.trim())
+      newErrors.first_name = "First Name is required";
+    if (!formData.last_name.trim())
+      newErrors.last_name = "Last Name is required";
 
-    if (!formData.tradingYearStart)
-      newErrors.tradingYearStart = "Trading Year Start Date is required";
-    if (!formData.tradingYearEnd)
-      newErrors.tradingYearEnd = "Trading Year End Date is required";
+    if (!formData.year_start)
+      newErrors.year_start = "Trading Year Start Date is required";
+    if (!formData.year_end)
+      newErrors.year_end = "Trading Year End Date is required";
 
     // Optional: check if end date is after start date
     if (
-      formData.tradingYearStart &&
-      formData.tradingYearEnd &&
-      new Date(formData.tradingYearEnd) < new Date(formData.tradingYearStart)
+      formData.year_start &&
+      formData.year_end &&
+      new Date(formData.year_end) < new Date(formData.year_start)
     ) {
-      newErrors.tradingYearEnd = "End date cannot be before start date";
+      newErrors.year_end = "End date cannot be before start date";
     }
 
     if (!formData.email.trim()) newErrors.email = "Email is required";
@@ -78,18 +83,49 @@ const Signup = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
+      if (isSubmitting) return; // Prevent double submission
       setIsSubmitting(true);
-      // Simulate API call or do your actual signup logic here
-      setTimeout(() => {
-        console.log("Signup Data:", formData);
+      try {
+        const response = await registerApi(formData);
+        if (response.data.success) {
+          toast.success(response.data.message || "Signup successful!");
+          // Optional: reset form or redirect
+          setFormData({
+            first_name: "",
+              last_name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          terms: false,
+          user_type: "personal",
+          year_start: formData.year_start,
+          year_end: formData.year_end,
+        });
+
+        // Redirect to the login page 
+        navigate("/login");
+
+      }else {
+        // API returned validation errors
+        const apiErrors = response.data.errors || {};
+        setErrors(apiErrors); // show errors on form fields
+        toast.error("Please fix the highlighted errors.");
+      }
+
+      console.log("Signup Response:", response.data);
+        console.log("Signup Successful:", response.data);
+      } catch (error) {
+        console.error("Signup Failed:", error);
+        toast.error(error.response?.data?.message || "Signup failed!");
+      } finally {
         setIsSubmitting(false);
-      }, 1500);
+      }
     }
   };
 
@@ -113,74 +149,76 @@ const Signup = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label
-                htmlFor="firstName"
+                htmlFor="first_name"
                 className="block text-sm font-semibold text-gray-700 mb-1"
               >
                 First Name
               </label>
               <div
                 className={`flex items-center rounded-lg border px-4 py-3 transition-colors duration-200 focus-within:ring-2 focus-within:ring-blue-500 ${
-                  errors.firstName ? "border-red-500" : "border-gray-300"
+                  errors.first_name ? "border-red-500" : "border-gray-300"
                 }`}
               >
                 <FaUser className="text-gray-400 mr-3" aria-hidden="true" />
                 <input
-                  id="firstName"
-                  name="firstName"
+                  id="first_name"
+                  name="first_name"
                   type="text"
                   placeholder="First Name"
-                  aria-invalid={errors.firstName ? "true" : "false"}
-                  aria-describedby={errors.firstName ? "firstName-error" : null}
-                  value={formData.firstName}
+                  aria-invalid={errors.first_name ? "true" : "false"}
+                  aria-describedby={
+                    errors.first_name ? "first_name-error" : null
+                  }
+                  value={formData.first_name}
                   onChange={handleChange}
                   required
                   className="w-full bg-transparent outline-none text-gray-900 placeholder-gray-400"
                 />
               </div>
-              {errors.firstName && (
+              {errors.first_name && (
                 <p
-                  id="firstName-error"
+                  id="first_name-error"
                   className="mt-1 text-xs text-red-600"
                   role="alert"
                 >
-                  {errors.firstName}
+                  {errors.first_name}
                 </p>
               )}
             </div>
 
             <div>
               <label
-                htmlFor="lastName"
+                htmlFor="last_name"
                 className="block text-sm font-semibold text-gray-700 mb-1"
               >
                 Last Name
               </label>
               <div
                 className={`flex items-center rounded-lg border px-4 py-3 transition-colors duration-200 focus-within:ring-2 focus-within:ring-blue-500 ${
-                  errors.lastName ? "border-red-500" : "border-gray-300"
+                  errors.last_name ? "border-red-500" : "border-gray-300"
                 }`}
               >
                 <FaUser className="text-gray-400 mr-3" aria-hidden="true" />
                 <input
-                  id="lastName"
-                  name="lastName"
+                  id="last_name"
+                  name="last_name"
                   type="text"
                   placeholder="Last Name"
-                  aria-invalid={errors.lastName ? "true" : "false"}
-                  aria-describedby={errors.lastName ? "lastName-error" : null}
-                  value={formData.lastName}
+                  aria-invalid={errors.last_name ? "true" : "false"}
+                  aria-describedby={errors.last_name ? "last_name-error" : null}
+                  value={formData.last_name}
                   onChange={handleChange}
                   required
                   className="w-full bg-transparent outline-none text-gray-900 placeholder-gray-400"
                 />
               </div>
-              {errors.lastName && (
+              {errors.last_name && (
                 <p
-                  id="lastName-error"
+                  id="last_name-error"
                   className="mt-1 text-xs text-red-600"
                   role="alert"
                 >
-                  {errors.lastName}
+                  {errors.last_name}
                 </p>
               )}
             </div>
@@ -190,74 +228,70 @@ const Signup = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label
-                htmlFor="tradingYearStart"
+                htmlFor="year_start"
                 className="block text-sm font-semibold text-gray-700 mb-1"
               >
                 Trading Year Start Date
               </label>
               <input
-                id="tradingYearStart"
-                name="tradingYearStart"
+                id="year_start"
+                name="year_start"
                 type="text"
-                value={formatDate(formData.tradingYearStart)} // shows "6 April 2025"
+                value={formatDate(formData.year_start)} // shows "6 April 2025"
                 readOnly
                 onChange={handleChange}
-                aria-invalid={errors.tradingYearStart ? "true" : "false"}
-                aria-describedby={
-                  errors.tradingYearStart ? "tradingYearStart-error" : null
-                }
+                aria-invalid={errors.year_start ? "true" : "false"}
+                aria-describedby={errors.year_start ? "year_start-error" : null}
                 required
                 // className={`w-full rounded-lg border px-4 py-3 outline-none text-gray-900 placeholder-gray-400 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 cursor-not-allowed ${
-                //   errors.tradingYearStart ? "border-red-500" : "border-gray-300"
+                //   errors.year_start ? "border-red-500" : "border-gray-300"
                 // }`}
                 className={`w-full rounded-lg border px-4 py-3 outline-none text-gray-900 bg-gray-100 placeholder-gray-400 cursor-not-allowed ${
-                  errors.tradingYearStart ? "border-red-500" : "border-gray-300"
+                  errors.year_start ? "border-red-500" : "border-gray-300"
                 }`}
               />
-              {errors.tradingYearStart && (
+              {errors.year_start && (
                 <p
-                  id="tradingYearStart-error"
+                  id="year_start-error"
                   className="mt-1 text-xs text-red-600"
                   role="alert"
                 >
-                  {errors.tradingYearStart}
+                  {errors.year_start}
                 </p>
               )}
             </div>
 
             <div>
               <label
-                htmlFor="tradingYearEnd"
+                htmlFor="year_end"
                 className="block text-sm font-semibold text-gray-700 mb-1"
               >
                 Trading Year End Date
               </label>
               <input
-                id="tradingYearEnd"
-                name="tradingYearEnd"
+                id="year_end"
+                name="year_end"
                 type="text"
-                value={formatDate(formData.tradingYearEnd)}
+                value={formatDate(formData.year_end)}
                 readOnly
                 onChange={handleChange}
-                aria-invalid={errors.tradingYearEnd ? "true" : "false"}
-                aria-describedby={
-                  errors.tradingYearEnd ? "tradingYearEnd-error" : null
-                }
+                aria-invalid={errors.year_end ? "true" : "false"}
+                aria-describedby={errors.year_end ? "year_end-error" : null}
                 required
                 // className={`w-full rounded-lg border px-4 py-3 outline-none text-gray-900 placeholder-gray-400 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 cursor-not-allowed ${
-                //   errors.tradingYearEnd ? "border-red-500" : "border-gray-300"
+                //   errors.year_end ? "border-red-500" : "border-gray-300"
                 // }`}
                 className={`w-full rounded-lg border px-4 py-3 outline-none text-gray-900 bg-gray-100 placeholder-gray-400 cursor-not-allowed ${
-                  errors.tradingYearStart ? "border-red-500" : "border-gray-300"
+                  errors.year_start ? "border-red-500" : "border-gray-300"
                 }`}
               />
-              {errors.tradingYearEnd && (
+              {errors.year_end && (
                 <p
-                  id="tradingYearEnd-error"
+                  id="year_end-error"
                   className="mt-1 text-xs text-red-600"
                   role="alert"
                 >
-                  {errors.tradingYearEnd}
+                  {errors.year_end}
                 </p>
               )}
             </div>
