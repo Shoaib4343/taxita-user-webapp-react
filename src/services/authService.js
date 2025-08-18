@@ -11,3 +11,8 @@ export const loginApi = (data)=>{
 export const logoutApi  = ()=>{
     return axiosInstance.post("/logout");
 }
+
+// register api
+export const registerApi = (data) => {
+    return axiosInstance.post("/register", data);
+}
