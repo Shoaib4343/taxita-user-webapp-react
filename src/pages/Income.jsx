@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   FaWallet,
@@ -16,11 +15,21 @@ import IncomeModal from "../components/IncomeModal";
 const weeksData = generateWeeksForYear(2025);
 
 const incomeData = [
-  { id: 1, title: "Cash Account", amount: 1240, icon: FaWallet, color: "bg-emerald-500" },
-  { id: 2, title: "Card Account", amount: 980, icon: FaCreditCard, color: "bg-blue-500" },
-  { id: 3, title: "Contract Account", amount: 1500, icon: FaFileInvoiceDollar, color: "bg-purple-500" },
-  { id: 4, title: "Sub Contract Account", amount: 1200, icon: FaFileInvoice, color: "bg-yellow-500" },
-  { id: 5, title: "Rental Income", amount: 2000, icon: FaHome, color: "bg-red-500" },
+  { id: 1, title: "Cash Account", icon: FaWallet, color: "bg-emerald-500" },
+  { id: 2, title: "Card Account", icon: FaCreditCard, color: "bg-blue-500" },
+  {
+    id: 3,
+    title: "Contract Account",
+    icon: FaFileInvoiceDollar,
+    color: "bg-purple-500",
+  },
+  {
+    id: 4,
+    title: "Sub Contract Account",
+    icon: FaFileInvoice,
+    color: "bg-yellow-500",
+  },
+  { id: 5, title: "Rental Income", icon: FaHome, color: "bg-red-500" },
 ];
 
 export default function Income() {
@@ -59,7 +68,15 @@ export default function Income() {
       </div>
 
       <div className="flex flex-1 overflow-hidden bg-white rounded-b-xl">
-        <SidebarWeeks weeksData={weeksData} onWeekSelect={handleWeekSelect} onDaySelect={handleDaySelect} />
+        <SidebarWeeks
+          weeksData={weeksData}
+          onSelect={({ week, day }) => {
+            setCurrentWeek(week);
+            setSelectedDay(day);
+            console.log("Transaction date:", day.id); // still keep log if useful
+          }}
+          onDaySelect={handleDaySelect}
+        />
 
         <main className="flex-1 p-6 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
@@ -82,12 +99,16 @@ export default function Income() {
                 onClick={() => handleCardClick(item)}
                 className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center gap-4 hover:shadow-md hover:cursor-pointer transition"
               >
-                <div className={`w-12 h-12 min-w-[48px] min-h-[48px] rounded-full flex items-center justify-center text-white ${item.color}`}>
+                <div
+                  className={`w-12 h-12 min-w-[48px] min-h-[48px] rounded-full flex items-center justify-center text-white ${item.color}`}
+                >
                   <item.icon className="text-xl" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">{item.title}</h3>
-                  <p className="text-xl font-bold text-gray-900">£{item.amount.toLocaleString()}</p>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    {item.title}
+                  </h3>
+                  {/* <p className="text-xl font-bold text-gray-900">£{item.amount.toLocaleString()}</p> */}
                 </div>
               </div>
             ))}
@@ -95,8 +116,14 @@ export default function Income() {
         </main>
       </div>
 
+      {/* Income popUp model */}
       {activeCard && (
-        <IncomeModal open={modalOpen} onClose={() => setModalOpen(false)} card={activeCard} />
+        <IncomeModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          card={activeCard}
+          selectedDay={selectedDay}
+        />
       )}
     </div>
   );

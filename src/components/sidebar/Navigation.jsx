@@ -16,7 +16,7 @@ const Navigation = ({ collapsed }) => {
   const navItems = [
     { to: "/dashboard", label: "Dashboard", icon: <FiHome /> },
     { to: "/dashboard/settings", label: "Settings", icon: <FiSettings /> },
-    { to: "/dashboard/profile", label: "Profile", icon: <FiUser /> },
+    { to: "/dashboard/personal-details", label: "Profile", icon: <FiUser /> },
     { to: "/dashboard/income", label: "Income", icon: <FaDollarSign /> },
     { to: "/dashboard/weekly-income", label: "Weekly Income", icon: <FaCalendarAlt /> },
     { to: "/dashboard/expenses", label: "Expenses", icon: <FaArrowDown /> },
