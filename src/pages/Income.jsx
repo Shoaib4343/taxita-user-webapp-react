@@ -11,6 +11,7 @@ import { generateWeeksForYear } from "../utils/generateWeeks";
 import SidebarWeeks from "../components/SidebarWeeks";
 import { IoCalendarOutline } from "react-icons/io5";
 import IncomeModal from "../components/IncomeModal";
+import { Link } from "react-router-dom";
 
 const weeksData = generateWeeksForYear(2025);
 
@@ -62,10 +63,23 @@ export default function Income() {
 
   return (
     <div className=" h-screen flex flex-col rounded-xl">
-      <div className="bg-white border-b border-gray-200 p-4 rounded-t-xl">
+      
+
+      <div className="flex justify-between items-center bg-white border-b border-gray-200 p-4 rounded-t-xl">
+        <div className=" ">
         <h2 className="text-xl font-semibold  mb-1">Your Income</h2>
         <p className="text-sm text-gray-500">Your income listings go here...</p>
       </div>
+       {/* Breadcrumbs */}
+      <div className="flex items-center text-sm md:mt-0">
+        <Link to="/dashboard" className="hover:underline text-blue-600">
+          Dashboard
+        </Link>
+        <span className="mx-2">/</span>
+        <span>Income</span>
+      </div>
+      </div>
+    
 
       <div className="flex flex-1 overflow-hidden bg-white rounded-b-xl">
         <SidebarWeeks
