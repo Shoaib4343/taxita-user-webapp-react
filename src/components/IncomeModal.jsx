@@ -36,9 +36,9 @@ const IncomeModal = ({ open, onClose, card, selectedDay }) => {
       // 🔑 Build FormData
       const formData = new FormData();
       formData.append("transaction_type", "credit");
-      formData.append("trading_year_id", 4);
+      // formData.append("trading_year_id", 4);
       formData.append("account_type_id", 1);
-      formData.append("account_id", card.id);
+      formData.append("account_id", 1);
       formData.append("amount", numAmount);
       // formData.append("user_id", 40);
       formData.append("description", `Income in ${card.title}`);
