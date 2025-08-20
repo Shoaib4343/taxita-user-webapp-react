@@ -158,7 +158,7 @@ const StatCards = () => {
           {
             icon: FaCalendarAlt,
             title: "Weekly Income",
-            value: "£0.00",
+            value: `£${data.current_week_income}`,
             description: "Weekly income listings",
             color: "bg-blue-600",
             path: "/dashboard/weekly-income",
@@ -175,7 +175,7 @@ const StatCards = () => {
           {
             icon: FaCalendarAlt,
             title: "Weekly Expenses",
-            value: "£0.00",
+            value:`£${data.current_week_expense}`,
             description: "Weekly expense listings",
             color: "bg-orange-600",
             path: "/dashboard/weekly-expenses",
@@ -232,7 +232,7 @@ const StatCards = () => {
           {
             icon: FaIdCard,
             title: "ID Verification",
-            value: "0",
+            value: data.user_id_documents,
             description: "Money laundering documents",
             color: "bg-blue-600",
             path: "/dashboard/id-documents",
