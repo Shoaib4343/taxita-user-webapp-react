@@ -155,40 +155,40 @@
 
 
 
-// src/pages/WeeklyExpenses.jsx
+// src/pages/WeeklyIncome.jsx
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { weeklyExpensesApi } from "../services/dashboard";
+import {  weeklyIncomeApi } from "../services/dashboard";
 
-const WeeklyExpenses = () => {
+const WeeklyIncome = () => {
   const [weeklyData, setWeeklyData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchWeeklyExpenses = async () => {
+    const fetchWeeklyIncome = async () => {
       setLoading(true);
       try {
-        const res = await weeklyExpensesApi();
+        const res = await weeklyIncomeApi();
         if (res.data.success) {
           setWeeklyData(res.data.data);
         } else {
-          toast.error("Failed to fetch weekly expenses");
+          toast.error("Failed to fetch weekly income");
         }
       } catch (err) {
         console.error(err);
-        toast.error("Something went wrong while fetching expenses");
+        toast.error("Something went wrong while fetching income");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWeeklyExpenses();
+    fetchWeeklyIncome();
   }, []);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading weekly expenses...</p>
+        <p className="text-gray-500">Loading weekly income...</p>
       </div>
     );
   }
@@ -196,7 +196,7 @@ const WeeklyExpenses = () => {
   if (!weeklyData.length) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">No weekly expenses data available.</p>
+        <p className="text-gray-500">No weekly Income data available.</p>
       </div>
     );
   }
@@ -209,7 +209,7 @@ const WeeklyExpenses = () => {
     <div className="min-h-screen p-6 bg-white rounded-xl">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">
-          Weekly Expenses Listings
+          Weekly Income Listings
         </h2>
 
         <div className="space-y-6">
@@ -221,19 +221,19 @@ const WeeklyExpenses = () => {
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="bg-red-600 text-white font-semibold">
-                      <th className="px-4 py-2 rounded-tl-xl border-b border-red-700 text-start">
+                    <tr className="bg-blue-600 text-white font-semibold">
+                      <th className="px-4 py-2 rounded-tl-xl border-b border-blue-700 text-start">
                         Week {week.week_number} ({week.start_date})
                       </th>
                       {categories.map((cat) => (
                         <th
                           key={cat}
-                          className="px-4 py-2 text-left border-b border-red-700 whitespace-nowrap"
+                          className="px-4 py-2 text-left border-b border-blue-700 whitespace-nowrap"
                         >
                           {cat}
                         </th>
                       ))}
-                      <th className="px-4 py-2 text-left border-b border-red-700 rounded-tr-xl">
+                      <th className="px-4 py-2 text-left border-b border-blue-700 rounded-tr-xl">
                         Total
                       </th>
                     </tr>
@@ -260,7 +260,7 @@ const WeeklyExpenses = () => {
                     ))}
 
                     {/* Weekly summary row */}
-                    <tr className="bg-red-50 font-semibold border-t-2 border-red-300">
+                    <tr className="bg-blue-50 font-semibold border-t-2 border-blue-300">
                       <td className="px-4 py-2">Weekly Summary</td>
                       {categories.map((cat) => (
                         <td key={cat} className="px-4 py-2">
@@ -282,4 +282,4 @@ const WeeklyExpenses = () => {
   );
 };
 
-export default WeeklyExpenses;
+export default WeeklyIncome;
