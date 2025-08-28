@@ -29,6 +29,7 @@ export const TopBar = () => {
   };
 
   return (
+    <>
     <div className="border-b border-stone-200 px-4 py-3">
       <div className="flex items-start justify-between">
         <div className="flex flex-col">
@@ -45,5 +46,38 @@ export const TopBar = () => {
         </button>
       </div>
     </div>
+    {/* Dashboard Intro Section */}
+      <div className="">
+        <div className=" p-6">
+          {/* Heading + Paragraph */}
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 ">
+            Taxita Dashboard
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Welcome you to <span className="font-medium">Taxita</span>, where
+            you will find different kinds of support modules on the left
+            sidebar. You can reset your profile and dynamically manage your data
+            with ease.
+          </p>
+
+          {/* Info Box */}
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+            <p className="text-sm text-gray-700">
+              <span className="font-semibold">2025-2026</span> — Selected tax
+              year
+            </p>
+            <p className="text-sm text-gray-700 mt-1">
+              <span className="font-semibold">Plan:</span> Platinum —
+              <span className="text-gray-600">
+                {" "}
+                expires on Wed, 26 Aug 2026, 12:00 AM
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </>
+
   );
 };
