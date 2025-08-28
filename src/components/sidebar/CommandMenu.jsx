@@ -1,6 +1,3 @@
-
-
-
 import React, { useEffect, useRef, useState } from "react";
 import { FiX, FiHome, FiSettings, FiLogOut, FiSearch } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
