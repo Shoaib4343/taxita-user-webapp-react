@@ -7,14 +7,13 @@ import {
   FaFileInvoice,
   FaArrowRight,
 } from "react-icons/fa";
-import { generateWeeksForYear } from "../utils/generateWeeks";
 import SidebarWeeks from "../components/SidebarWeeks";
 import { IoCalendarOutline } from "react-icons/io5";
 import IncomeModal from "../components/IncomeModal";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
-const weeksData = generateWeeksForYear(2025);
-
+// Static list of income accounts/cards with their respective icons and colors
 const incomeData = [
   { id: 1, title: "Cash Account", icon: FaWallet, color: "bg-emerald-500" },
   { id: 2, title: "Card Account", icon: FaCreditCard, color: "bg-blue-500" },
@@ -33,79 +32,87 @@ const incomeData = [
   { id: 5, title: "Rental Income", icon: FaHome, color: "bg-red-500" },
 ];
 
-export default function Income() {
-  const [currentWeek, setCurrentWeek] = useState(weeksData[0]);
-  const [selectedDay, setSelectedDay] = useState(currentWeek.days[0]);
+const Income = () => {
+  const [currentWeek, setCurrentWeek] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [activeCard, setActiveCard] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-GB", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  const handleWeekSelect = (week) => {
-    setCurrentWeek(week);
-    setSelectedDay(week.days[0]);
-  };
-
-  const handleDaySelect = (day) => setSelectedDay(day);
-
+  // Handler when a user clicks on an income card
   const handleCardClick = (card) => {
+    if (!selectedDay) {
+      toast.error("Please select a day first");
+      return;
+    }
     setActiveCard(card);
     setModalOpen(true);
   };
 
-  return (
-    <div className=" h-screen flex flex-col rounded-xl">
-      
-
-      <div className="flex justify-between items-center bg-white border-b border-gray-200 p-4 rounded-t-xl">
-        <div className=" ">
-        <h2 className="text-xl font-semibold  mb-1">Your Income</h2>
-        <p className="text-sm text-gray-500">Your income listings go here...</p>
-      </div>
-       {/* Breadcrumbs */}
-      <div className="flex items-center text-sm md:mt-0">
-        <Link to="/dashboard" className="hover:underline text-blue-600">
-          Dashboard
-        </Link>
-        <span className="mx-2">/</span>
-        <span>Income</span>
-      </div>
-      </div>
+  // Handler for successful transaction - triggers data refresh
+  const handleTransactionSuccess = () => {
+    // Increment refresh trigger to force sidebar to refetch data
+    setRefreshTrigger(prev => prev + 1);
     
+    // Close modal
+    setModalOpen(false);
+    
+    // Show success message (the modal already shows this)
+  };
 
+  return (
+    <div className="h-screen flex flex-col rounded-xl">
+      {/* Header */}
+      <div className="flex justify-between items-center bg-white border-b border-gray-200 p-4 rounded-t-xl">
+        <div>
+          <h2 className="text-xl font-semibold mb-1">Your Income</h2>
+          <p className="text-sm text-gray-500">
+            Your income listings go here...
+          </p>
+        </div>
+        <div className="flex items-center text-sm md:mt-0">
+          <Link to="/dashboard" className="hover:underline text-blue-600">
+            Dashboard
+          </Link>
+          <span className="mx-2">/</span>
+          <span>Income</span>
+        </div>
+      </div>
+
+      {/* Layout */}
       <div className="flex flex-1 overflow-hidden bg-white rounded-b-xl">
+        {/* Sidebar for weeks/days */}
         <SidebarWeeks
-          weeksData={weeksData}
-          onSelect={({ week, day }) => {
-            setCurrentWeek(week);
+          onSelect={({ week, day, days }) => {
+            setCurrentWeek({ ...week, days: days || [] });
             setSelectedDay(day);
-            console.log("Transaction date:", day.id); // still keep log if useful
           }}
-          onDaySelect={handleDaySelect}
+          refreshTrigger={refreshTrigger}
         />
 
+        {/* Main content area */}
         <main className="flex-1 p-6 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">Your Daily Income</h1>
-            <button className=" bg-blue-50  text-blue-600 font-medium text-sm px-4 py-2 rounded-lg shadow-sm  hover:bg-blue-100 hover:shadow-md transition duration-200 flex items-center gap-2 hover:cursor-pointer">
-              <span>View all income against {formatDate(selectedDay.id)}</span>
-              <FaArrowRight className="w-3 h-4 " />
-            </button>
+            {selectedDay && (
+              <button className="bg-blue-50 text-blue-600 font-medium text-sm px-4 py-2 rounded-lg shadow-sm hover:bg-blue-100 hover:shadow-md transition duration-200 flex items-center gap-2 hover:cursor-pointer">
+                <span>View all income against {selectedDay.label}</span>
+                <FaArrowRight className="w-3 h-4" />
+              </button>
+            )}
           </div>
 
-          <p className="text-gray-600 mb-6 flex items-center gap-2">
-            <IoCalendarOutline className="w-5 h-5 text-blue-500" />
-            {formatDate(selectedDay.id)}
-          </p>
+          {/* Show selected day's total */}
+          {selectedDay && (
+            <p className="text-gray-600 mb-6 flex items-center gap-2">
+              <IoCalendarOutline className="w-5 h-5 text-blue-500" />
+              {selectedDay.label} (£{Number(selectedDay.total).toFixed(2)})
+            </p>
+          )}
 
+
+
+          {/* Income Cards */}
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {incomeData.map((item) => (
               <div
@@ -122,7 +129,6 @@ export default function Income() {
                   <h3 className="text-sm font-medium text-gray-500">
                     {item.title}
                   </h3>
-                  {/* <p className="text-xl font-bold text-gray-900">£{item.amount.toLocaleString()}</p> */}
                 </div>
               </div>
             ))}
@@ -130,15 +136,18 @@ export default function Income() {
         </main>
       </div>
 
-      {/* Income popUp model */}
+      {/* Modal */}
       {activeCard && (
         <IncomeModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
           card={activeCard}
           selectedDay={selectedDay}
+          onSuccess={handleTransactionSuccess}
         />
       )}
     </div>
   );
-}
+};
+
+export default Income;
