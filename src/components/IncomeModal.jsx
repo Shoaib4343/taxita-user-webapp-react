@@ -1,22 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { FaTimes } from "react-icons/fa";
 import { createTransactionApi } from "../services/dashboard";
 
-const IncomeModal = ({ open, onClose, card, selectedDay }) => {
+const IncomeModal = ({ open, onClose, card, selectedDay, onSuccess }) => {
   const [visible, setVisible] = useState(false);
   const [amount, setAmount] = useState("");
-  const [file, setFile] = useState(null); // NEW state for file
+  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const amountRef = useRef(null);
 
   useEffect(() => {
     if (open) {
       setVisible(true);
+      // Clear errors when modal opens
+      setErrors({});
     } else {
       const timer = setTimeout(() => setVisible(false), 300);
       return () => clearTimeout(timer);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => amountRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [visible]);
 
   if (!visible) return null;
 
@@ -24,59 +35,75 @@ const IncomeModal = ({ open, onClose, card, selectedDay }) => {
     e.preventDefault();
     if (loading) return;
 
+    // Clear previous errors
+    setErrors({});
+
     const numAmount = parseFloat(amount);
     if (!numAmount || numAmount <= 0) {
-      toast.error("Please enter a valid positive amount");
+      setErrors({ amount: ["Please enter a valid positive amount"] });
       return;
     }
 
     setLoading(true);
-
     try {
-      // 🔑 Build FormData
       const formData = new FormData();
       formData.append("transaction_type", "credit");
-      // formData.append("trading_year_id", 4);
       formData.append("account_type_id", 1);
       formData.append("account_id", card.id);
       formData.append("amount", numAmount);
-      // formData.append("user_id", 40);
       formData.append("description", `Income in ${card.title}`);
-      formData.append("date", selectedDay.id);
+      formData.append("date", selectedDay.date);
 
+      // Keep the original simple file handling that works
       if (file) {
-        formData.append("attachment", file); // file field for backend
+        formData.append("attachment", file);
       }
-
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-      console.log("numAmount:", numAmount, typeof numAmount);
 
       const res = await createTransactionApi(formData);
 
-      // ✅ Check if backend returned success
       if (res.data.success || res.data.status === true) {
         toast.success(
-          res.data.message || `Posted £${numAmount} to ${card.title}`
+          res.data.message || `Posted £${numAmount.toFixed(2)} to ${card.title}`
         );
+
         setAmount("");
         setFile(null);
-        onClose();
+        setErrors({});
+
+        onSuccess &&
+          onSuccess({
+            amount: numAmount,
+            date: selectedDay.date,
+            card: card,
+          });
       } else {
-        // ❌ Validation or general error
         if (res.data.errors) {
-          // show each validation error
-          Object.values(res.data.errors)
-            .flat()
-            .forEach((errMsg) => toast.error(errMsg));
+          // Set inline errors for form fields
+          setErrors(res.data.errors);
+
+          // Show general toast for non-field specific errors
+          const generalErrors = Object.entries(res.data.errors)
+            .filter(([key]) => !["amount", "attachment", "date"].includes(key))
+            .flatMap(([, msgs]) => msgs);
+
+          generalErrors.forEach((errMsg) => toast.error(errMsg));
         } else {
           toast.error(res.data.message || "Failed to post income");
         }
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong");
+      console.error("Transaction error:", err);
+      if (err.response?.data?.errors) {
+        setErrors(err.response.data.errors);
+
+        const generalErrors = Object.entries(err.response.data.errors)
+          .filter(([key]) => !["amount", "attachment", "date"].includes(key))
+          .flatMap(([, msgs]) => msgs);
+
+        generalErrors.forEach((errMsg) => toast.error(errMsg));
+      } else {
+        toast.error(err.response?.data?.message || "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
@@ -95,7 +122,7 @@ const IncomeModal = ({ open, onClose, card, selectedDay }) => {
       >
         {/* Close */}
         <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition cursor-pointer"
           onClick={onClose}
           disabled={loading}
         >
@@ -110,58 +137,107 @@ const IncomeModal = ({ open, onClose, card, selectedDay }) => {
           Post Income in "{card.title}"
         </h2>
 
+        {/* Selected Day Info */}
+        {selectedDay && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <span className="font-medium">Date:</span> {selectedDay.label}
+            </p>
+            <p className="text-sm text-blue-800">
+              <span className="font-medium">Current Total:</span> £
+              {Number(selectedDay.total || 0).toFixed(2)}
+            </p>
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           {/* Amount */}
-          <input
-            type="number"
-            placeholder="Enter amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            disabled={loading}
-            className="border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-gray-100"
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Amount (£)
+            </label>
+            <input
+              ref={amountRef}
+              type="number"
+              step="0.01"
+              min="0.01"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              disabled={loading}
+              className={`w-full border rounded-xl px-4 py-3 shadow-sm focus:outline-none focus:ring-2 transition disabled:bg-gray-100 ${
+                errors.amount
+                  ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
+              required
+            />
+            {errors.amount && (
+              <div className="mt-1">
+                {errors.amount.map((error, index) => (
+                  <p key={index} className="text-sm text-red-600">
+                    {error}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* File Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload Expense Document? (Optional)
+              Upload Receipt/Document (Optional)
             </label>
             <input
               type="file"
               onChange={(e) => setFile(e.target.files[0])}
               disabled={loading}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
+              accept=".jpg,.jpeg,.png,.pdf"
+              className={`block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 cursor-pointer
                          file:rounded-lg file:border-0
                          file:text-sm file:font-semibold
                          file:bg-blue-50 file:text-blue-700
-                         hover:file:bg-blue-100 disabled:opacity-50"
+                         hover:file:bg-blue-100 disabled:opacity-50 ${
+                           errors.attachment ? "border-red-500" : ""
+                         }`}
             />
             {file && (
               <p className="mt-1 text-xs text-gray-500">
-                Selected: {file.name}
+                Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)
               </p>
+            )}
+            {errors.attachment && (
+              <div className="mt-1">
+                {errors.attachment.map((error, index) => (
+                  <p key={index} className="text-sm text-red-600">
+                    {error}
+                  </p>
+                ))}
+              </div>
             )}
           </div>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition disabled:opacity-50"
+              className=" cursor-pointer px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition disabled:opacity-50"
             >
-              Close
+              Cancel
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !amount || parseFloat(amount) <= 0}
               className={`px-5 py-2 rounded-lg text-white shadow-md transition disabled:opacity-50 ${
-                card.color || "bg-blue-600 hover:bg-blue-700"
+                loading || !amount || parseFloat(amount) <= 0
+                  ? "cursor-not-allowed bg-gray-400"
+                  : "cursor-pointer " +
+                    (card.color || "bg-blue-600 hover:bg-blue-700")
               }`}
             >
-              {loading ? "Posting..." : "Submit"}
+              {loading ? "Processing..." : `Post £${amount || "0.00"}`}
             </button>
           </div>
         </form>
