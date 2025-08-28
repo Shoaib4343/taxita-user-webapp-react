@@ -25,6 +25,8 @@ import SidebarWeeks from "../components/SidebarWeeks";
 import { IoCalendarOutline } from "react-icons/io5";
 import ExpenseModal from "../components/ExpenseModal";
 import { Link } from "react-router-dom";
+import SidebarWeeksExpense from "../components/SidebarWeeksExpense";
+import toast from "react-hot-toast";
 
 const weeksData = generateWeeksForYear(2025);
 
@@ -124,31 +126,25 @@ const additionalExpenses = [
 ];
 
 const Expenses = () => {
-  const [currentWeek, setCurrentWeek] = useState(weeksData[0]);
-  const [selectedDay, setSelectedDay] = useState(currentWeek.days[0]);
+  const [currentWeek, setCurrentWeek] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [activeCard, setActiveCard] = useState(null);
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-GB", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  const handleWeekSelect = (week) => {
-    setCurrentWeek(week);
-    setSelectedDay(week.days[0]);
-  };
-
-  const handleDaySelect = (day) => setSelectedDay(day);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleCardClick = (card) => {
+    if (!selectedDay) {
+      // Optional: you can use toast here for warning
+       toast.error("Please select a day first");
+      return;
+    }
     setActiveCard(card);
     setModalOpen(true);
+  };
+
+  const handleTransactionSuccess = () => {
+    setRefreshTrigger(prev => prev + 1);
+    setModalOpen(false);
   };
 
   const renderCardSection = (title, data) => (
@@ -181,53 +177,47 @@ const Expenses = () => {
     <div className="h-screen flex flex-col rounded-xl">
       {/* Header */}
       <div className="flex justify-between items-center bg-white border-b border-gray-200 p-4 rounded-t-xl">
-        <div className=" ">
-        <h2 className="text-xl font-semibold  mb-1">Your Expenses</h2>
-        <p className="text-sm text-gray-500">Your Expense listings go here...</p>
-      </div>
-       {/* Breadcrumbs */}
-      <div className="flex items-center text-sm md:mt-0">
-        <Link to="/dashboard" className="hover:underline text-blue-600">
-          Dashboard
-        </Link>
-        <span className="mx-2">/</span>
-        <span>Expense</span>
-      </div>
+        <div>
+          <h2 className="text-xl font-semibold mb-1">Your Expenses</h2>
+          <p className="text-sm text-gray-500">Your Expense listings go here...</p>
+        </div>
+        <div className="flex items-center text-sm md:mt-0">
+          <Link to="/dashboard" className="hover:underline text-blue-600">
+            Dashboard
+          </Link>
+          <span className="mx-2">/</span>
+          <span>Expense</span>
+        </div>
       </div>
 
-      {/* Main layout */}
       <div className="flex flex-1 overflow-hidden bg-white rounded-b-xl">
         {/* Sidebar */}
-        {/* <SidebarWeeks weeksData={weeksData} onWeekSelect={handleWeekSelect} onDaySelect={handleDaySelect} /> */}
-
-        <SidebarWeeks
-          weeksData={weeksData}
-          onSelect={({ week, day }) => {
-            setCurrentWeek(week);
+        <SidebarWeeksExpense
+          onSelect={({ week, day, days }) => {
+            setCurrentWeek({ ...week, days: days || [] });
             setSelectedDay(day);
-            console.log("Expense date:", day.id); // optional, like income
           }}
-          onDaySelect={handleDaySelect}
+          refreshTrigger={refreshTrigger}
         />
 
         {/* Main content */}
         <main className="flex-1 p-6 overflow-y-auto">
-          {/* Page header */}
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">Your Daily Expenses</h1>
-            <button className="bg-blue-50 text-blue-600 font-medium text-sm px-4 py-2 rounded-lg shadow-sm hover:bg-blue-100 hover:shadow-md transition duration-200 flex items-center gap-2 hover:cursor-pointer">
-              <span>
-                View all expenses against {formatDate(selectedDay.id)}
-              </span>
-              <FaArrowRight className="w-3 h-4" />
-            </button>
+            {selectedDay && (
+              <button className="bg-blue-50 text-blue-600 font-medium text-sm px-4 py-2 rounded-lg shadow-sm hover:bg-blue-100 hover:shadow-md transition duration-200 flex items-center gap-2 hover:cursor-pointer">
+                <span>View all expenses against {selectedDay.label}</span>
+                <FaArrowRight className="w-3 h-4" />
+              </button>
+            )}
           </div>
 
-          {/* Date display */}
-          <p className="text-gray-600 mb-6 flex items-center gap-2">
-            <IoCalendarOutline className="w-5 h-5 text-blue-500" />
-            {formatDate(selectedDay.id)}
-          </p>
+          {selectedDay && (
+            <p className="text-gray-600 mb-6 flex items-center gap-2">
+              <IoCalendarOutline className="w-5 h-5 text-blue-500" />
+              {selectedDay.label} (£{Number(selectedDay.total || 0).toFixed(2)})
+            </p>
+          )}
 
           {/* Card Sections */}
           {renderCardSection("Motor Expenses", motorExpenses)}
@@ -235,17 +225,18 @@ const Expenses = () => {
         </main>
       </div>
 
-      {/* Modal */}
       {activeCard && (
         <ExpenseModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
           card={activeCard}
           selectedDay={selectedDay}
+          onSuccess={handleTransactionSuccess}
         />
       )}
     </div>
   );
 };
+
 
 export default Expenses;
