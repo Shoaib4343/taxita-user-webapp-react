@@ -1,37 +1,58 @@
 import axiosInstance from "./axiosInstance";
-
-// Dashboard api 
+// Dashboard api
 export const dashboardApi = () => {
   return axiosInstance.get("/dashboard");
 };
 
-
-// Transaction api for icome and expence
+// Transaction api for income and expense
 export const createTransactionApi = (data) => {
-  // Detect if it's FormData
   if (data instanceof FormData) {
-    return axiosInstance.post("/transactions", data, {
-     headers: data instanceof FormData ? {} : { "Content-Type": "application/json" }
-    });
+    // Axios will auto-set multipart boundary
+    return axiosInstance.post("/transactions", data);
   }
-  return axiosInstance.post("/transactions", data);
+  return axiosInstance.post("/transactions", data, {
+    headers: { "Content-Type": "application/json" },
+  });
 };
+
+
+// Weekly income api
+export const weeklyIncomeApi = () => {
+  return axiosInstance.get("/weekly-income");
+};
+
+// -------- Income Weeks & Days --------
+
+// Get list of weeks
+export const incomeWeeks = () => axiosInstance.get("/income/weeks");
+
+// Get days of a specific week (dynamic)
+export const incomeDays = (weekNumber) => 
+  axiosInstance.get(`/income-weeks/${weekNumber}/days`);
 
 
 // Weekly expenses api
 export const weeklyExpensesApi = () => {
   return axiosInstance.get("/weekly-expenses");
 }
+// -------- expense Weeks & Days --------
 
+// expense weeks api
+export const expenseWeeksApi = () => axiosInstance.get("/expense/weeks");
 
-
-
-
-
-
-// Weekly income api
-export const weeklyIncomeApi = () => {
-  return axiosInstance.get("/weekly-income");
+// expense days api
+export const expenseDaysApi = (weekNumber) =>{
+  return axiosInstance.get(`/expense-weeks/${weekNumber}/days`);
 }
 
+
+
+// buy / renewal plains
+export const plainsApi = () => axiosInstance.get("/plans");
+
+
+//-------- Trading Years --------
+
+// previous-trading-years
+export const previousTradingYearApi = ()=> axiosInstance.get("/previous-trading-years");
 
