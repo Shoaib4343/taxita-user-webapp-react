@@ -26,6 +26,7 @@ import BuyPlan from "./pages/BuyPlan";
 import FinalizeTaxYear from "./pages/FinalizeTaxYear";
 import PersonalDetails from "./pages/PersonalDetails";
 import NotFoundPage from "./pages/NotFoundPage";
+import ResetPassword from "./pages/ResetPassword";
 
 const App = () => {
   return (
@@ -34,12 +35,13 @@ const App = () => {
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Redirect from root to login if not authenticated */}
-       {/* 🔹 Public Routes (grouped under PublicRoute) */}
+      {/* 🔹 Public Routes (grouped under PublicRoute) */}
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/partner-registration" element={<PartnerRegistration />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Route>
 
       {/* Protected Routes */}
@@ -53,19 +55,25 @@ const App = () => {
           <Route path="weekly-income" element={<WeeklyIncome />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="weekly-expenses" element={<WeeklyExpenses />} />
-          <Route path="percentage-adjustment" element={<PercentageAdjustment />} />
+          <Route
+            path="percentage-adjustment"
+            element={<PercentageAdjustment />}
+          />
           <Route path="vehicles" element={<Vehicles />} />
           <Route path="rolling-pl" element={<RollingPL />} />
           <Route path="self-assessment" element={<SelfAssessmentPage />} />
-          <Route path="financial-statements" element={<FinancialStatements />} />
+          <Route
+            path="financial-statements"
+            element={<FinancialStatements />}
+          />
           <Route path="uploaded-documents" element={<UploadedDocuments />} />
           <Route path="id-documents" element={<IDDocuments />} />
           <Route path="buy-renew-plan" element={<BuyPlan />} />
           <Route path="tax-year" element={<FinalizeTaxYear />} />
           <Route path="personal-details" element={<PersonalDetails />} />
         </Route>
-          <Route path="*" element={<NotFoundPage />} />
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };
