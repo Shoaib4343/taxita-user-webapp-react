@@ -1189,70 +1189,246 @@
 
 
 
+// import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
+// import { useState } from "react";
+// import toast from "react-hot-toast";
+
+// export default function PaymentCardForm({ clientSecret, onPaymentSuccess }) {
+//   const stripe = useStripe();
+//   const elements = useElements();
+//   const [isLoading, setIsLoading] = useState(false); // new loading state
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!stripe || !elements) return;
+
+//     // Optional: prevent empty submission
+//     const paymentElement = elements.getElement(PaymentElement);
+//     if (!paymentElement) {
+//       toast.error("Please fill in your card details.");
+//       return;
+//     }
+
+//     setIsLoading(true); // start loading / disable button
+//     try {
+//       // Confirm payment using Stripe frontend
+//       const { error, paymentIntent } = await stripe.confirmPayment({
+//         elements,
+//         redirect: "if_required", // SPA-friendly
+//       });
+
+//       if (error) {
+//         console.error("Stripe error:", error.message);
+//         toast.error(error.message);
+//         return;
+//       }
+
+//       if (paymentIntent?.status === "succeeded") {
+//         toast.success("Payment successful!");
+//         onPaymentSuccess?.(paymentIntent); // returns Stripe paymentIntent
+//         // Reset modal & state after success (React "refresh")
+//         elements.getElement(PaymentElement)?.clear(); // clears inputs
+//       } else {
+//         toast.error("Payment not completed. Please try again.");
+//       }
+//     } catch (err) {
+//       console.error("Payment error:", err);
+//       toast.error("Something went wrong. Please try again.");
+//     } finally {
+//       setIsLoading(false); // stop loading
+//     }
+//   };
+
+//   return (
+//     <form onSubmit={handleSubmit} className="max-h-[26rem] overflow-y-auto overflow-x-hidden">
+//       <PaymentElement />
+//       <div className="flex justify-center items-center py-3">
+//         <button
+//           type="submit"
+//           disabled={!stripe || isLoading} // disable during loading
+//           className={`w-52 flex items-center justify-center gap-2 text-white py-3 rounded-xl font-semibold bg-blue-800 ${
+//             isLoading ? "opacity-60 cursor-not-allowed" : ""
+//           }`}
+//         >
+//           {isLoading ? "Processing..." : "Pay"}
+//         </button>
+//       </div>
+//     </form>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import axiosInstance from "../services/axiosInstance";
 
-export default function PaymentCardForm({ clientSecret, onPaymentSuccess }) {
+export default function PaymentCardForm({ clientSecret, planData, onPaymentSuccess, onClose }) {
   const stripe = useStripe();
   const elements = useElements();
-  const [isLoading, setIsLoading] = useState(false); // new loading state
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!stripe || !elements) return;
 
-    // Optional: prevent empty submission
+    // Validate payment element
     const paymentElement = elements.getElement(PaymentElement);
     if (!paymentElement) {
       toast.error("Please fill in your card details.");
       return;
     }
 
-    setIsLoading(true); // start loading / disable button
+    setIsLoading(true);
+    
     try {
-      // Confirm payment using Stripe frontend
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        redirect: "if_required", // SPA-friendly
-      });
+      console.log("Starting payment confirmation via backend API...");
 
-      if (error) {
-        console.error("Stripe error:", error.message);
-        toast.error(error.message);
+      // Step 1: Submit the payment element to validate form
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        console.error("Payment element submit error:", submitError);
+        toast.error(submitError.message);
         return;
       }
 
-      if (paymentIntent?.status === "succeeded") {
-        toast.success("Payment successful!");
-        onPaymentSuccess?.(paymentIntent); // returns Stripe paymentIntent
-        // Reset modal & state after success (React "refresh")
-        elements.getElement(PaymentElement)?.clear(); // clears inputs
-      } else {
-        toast.error("Payment not completed. Please try again.");
+      // Step 2: Create payment method (this now works because Elements was created with paymentMethodCreation: 'manual')
+      const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
+        elements,
+        params: {
+          billing_details: {
+            // You can add billing details here if needed
+          },
+        },
+      });
+
+      if (paymentMethodError) {
+        console.error("Payment method creation error:", paymentMethodError);
+        toast.error(paymentMethodError.message);
+        return;
       }
+
+      console.log("Payment method created:", paymentMethod.id);
+
+      // Step 3: Extract PaymentIntent ID from clientSecret
+      const paymentIntentId = clientSecret.split("_secret")[0];
+      console.log("Payment Intent ID:", paymentIntentId);
+      console.log("Payment Method ID:", paymentMethod.id);
+
+      // Step 4: Send to your backend API to confirm payment
+      console.log("Confirming payment via backend API...");
+      const response = await axiosInstance.post("/confirm-payment", {
+        payment_intent_id: paymentIntentId,
+        payment_method_id: paymentMethod.id,
+        // Optional: include additional data if your backend needs it
+        plan_id: planData?.id,
+        amount: Math.round(parseFloat(planData?.price || 0) * 100), // amount in pence
+        currency: "GBP"
+      });
+
+      console.log("Backend API response:", response.data);
+
+      // Step 5: Handle API response
+      if (response.data.success || response.data.status === "succeeded") {
+        toast.success("Payment successful!");
+        console.log("Payment confirmed successfully via backend API!");
+        
+        // Call success callback with API response data
+        onPaymentSuccess?.(response.data);
+        
+        // Clear form
+        elements.getElement(PaymentElement)?.clear();
+      } else {
+        // Backend confirmation failed
+        console.error("Backend payment confirmation failed:", response.data);
+        toast.error(response.data.message || "Payment confirmation failed");
+      }
+
     } catch (err) {
       console.error("Payment error:", err);
-      toast.error("Something went wrong. Please try again.");
+      
+      // Handle different types of errors
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else if (err.response?.data?.error) {
+        toast.error(err.response.data.error);
+      } else if (err.message) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     } finally {
-      setIsLoading(false); // stop loading
+      setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-h-[26rem] overflow-y-auto overflow-x-hidden">
-      <PaymentElement />
-      <div className="flex justify-center items-center py-3">
-        <button
-          type="submit"
-          disabled={!stripe || isLoading} // disable during loading
-          className={`w-52 flex items-center justify-center gap-2 text-white py-3 rounded-xl font-semibold bg-blue-800 ${
-            isLoading ? "opacity-60 cursor-not-allowed" : ""
-          }`}
-        >
-          {isLoading ? "Processing..." : "Pay"}
-        </button>
+    <div className="p-6">
+      <h3 className="text-xl font-semibold mb-4 text-center">Complete Payment</h3>
+      
+      {planData && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-600">Plan: {planData.title}</p>
+          <p className="text-lg font-semibold">£{planData.price}</p>
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit} className="max-h-[26rem] overflow-y-auto overflow-x-hidden">
+        <PaymentElement />
+        <div className="flex justify-center items-center py-3">
+          <button
+            type="submit"
+            disabled={!stripe || isLoading}
+            className={`w-52 flex items-center justify-center gap-2 text-white py-3 rounded-xl font-semibold transition-all duration-200 ${
+              isLoading || !stripe
+                ? "bg-gray-400 cursor-not-allowed opacity-60"
+                : "bg-blue-800 hover:bg-blue-700"
+            }`}
+          >
+            {isLoading ? "Processing..." : `Pay £${planData?.price || "0.00"}`}
+          </button>
+        </div>
+      </form>
+      
+      <div className="text-xs text-gray-500 text-center mt-2">
+        Secured by your backend API
       </div>
-    </form>
+    </div>
   );
 }
