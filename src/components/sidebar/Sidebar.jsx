@@ -1,6 +1,4 @@
 
-
-
 // src/sidebar/Sidebar.jsx
 import React from "react";
 import AccountToggle from "./AccountToggle";
