@@ -1,25 +1,25 @@
 // src/sidebar/AccountToggle.jsx
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FiChevronDown,
-  FiChevronUp,
   FiUser,
-  FiSettings,
   FiLogOut,
 } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { logoutApi } from "../../services/authService";
 import toast from "react-hot-toast";
 
-const AccountToggle = ({ collapsed }) => {
+const AccountToggle = ({ collapsed, variant = "sidebar" }) => {
   const { auth, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+
   const toggle = () => setIsOpen((prev) => !prev);
 
-  // handle logout
+  // Handle logout
   const handleLogout = async () => {
     if (isLoggingOut) return; // Prevent multiple clicks
     setIsLoggingOut(true);
@@ -30,69 +30,145 @@ const AccountToggle = ({ collapsed }) => {
       navigate("/login"); // Redirect to login page
     } catch (error) {
       console.error("Logout failed:", error);
-      // Optionally show an error message to the user
       toast.error("Failed to logout, please try again.");
       setIsLoggingOut(false);
     }
   };
 
+  // Close on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Close dropdown on escape key
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
+  // Determine if we should show full content based on variant and screen size
+  const showFullContent = variant === "navbar" || (!collapsed && variant === "sidebar");
+  const isNavbar = variant === "navbar";
+
   return (
-    <div className="relative w-full">
+    <div ref={dropdownRef} className="relative w-full">
       <button
         onClick={toggle}
         aria-expanded={isOpen}
-        className={`flex items-center gap-3 p-2 rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors ${
-          collapsed ? "justify-center" : "justify-start"
+        aria-haspopup="true"
+        className={`flex items-center gap-2 h-10 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-100 hover:border-blue-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
+          isNavbar 
+            ? "px-3 max-w-[200px] sm:max-w-none" // Navbar: limited width on mobile, full on desktop
+            : collapsed 
+              ? "justify-center w-10 mx-auto" // Sidebar collapsed: centered square button
+              : "justify-between px-3 w-full" // Sidebar expanded: full width
         }`}
       >
-        <img
-          src="https://api.dicebear.com/9.x/notionists/svg"
-          alt="avatar"
-          className={`rounded-full shadow-sm ring-2 ring-violet-400 transition-all duration-200 ${
-            collapsed ? "w-6 h-6" : "w-9 h-9"
-          }`}
-        />
-        {!collapsed && (
-          <div className="flex flex-col text-left">
-            <span className="text-sm font-semibold text-gray-900">
-              {auth?.user?.first_name || "User"}
-            </span>
-            <span className="text-xs text-gray-500">
-              {auth?.user?.email || "user@example.com"}
-            </span>
-          </div>
+        <div className="flex items-center gap-2 min-w-0">
+          <img
+            src="https://api.dicebear.com/9.x/notionists/svg"
+            alt="User avatar"
+            className="w-6 h-6 rounded-full shadow-sm ring-2 ring-white flex-shrink-0"
+          />
+          {showFullContent && (
+            <div className="flex flex-col text-left min-w-0">
+              <span className={`font-medium text-gray-900 truncate ${
+                isNavbar ? "text-sm hidden sm:block" : "text-sm"
+              }`}>
+                {auth?.user?.first_name || "User"}
+              </span>
+              <span className={`text-gray-500 truncate ${
+                isNavbar ? "text-xs hidden sm:block" : "text-xs"
+              }`}>
+                {auth?.user?.email || "user@example.com"}
+              </span>
+            </div>
+          )}
+        </div>
+        {showFullContent && (
+          <FiChevronDown 
+            className={`w-4 h-4 text-gray-500 transition-transform duration-200 flex-shrink-0 ${
+              isOpen ? "rotate-180" : ""
+            } ${isNavbar ? "hidden sm:block" : ""}`}
+          />
         )}
-        {!collapsed && (isOpen ? <FiChevronUp /> : <FiChevronDown />)}
       </button>
 
       {/* Dropdown Menu */}
-      {isOpen && !collapsed && (
-        <div className="absolute left-0 mt-2 w-full bg-white rounded-lg shadow-md border border-gray-200 z-50 transition-all duration-200">
-          <button className="flex items-center gap-2 w-full px-4 py-2 hover:bg-blue-50 transition-colors cursor-pointer">
-            <FiUser className="text-gray-600" />
-            Profile
-          </button>
-          <button className="flex items-center gap-2 w-full px-4 py-2 hover:bg-blue-50 transition-colors cursor-pointer">
-            <FiSettings className="text-gray-600" />
-            Settings
-          </button>
-          <button
-  onClick={handleLogout}
-  disabled={isLoggingOut}
-  className={`flex items-center gap-2 w-full px-4 py-2 transition-colors rounded-md
-    ${isLoggingOut
-      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-      : "hover:bg-red-50 text-red-600 cursor-pointer"
-    }`}
->
-  <FiLogOut
-    className={`${isLoggingOut ? "text-gray-400" : "text-red-600"}`}
-  />
-  {isLoggingOut ? "Logging out..." : "Logout"}
-</button>
+      {isOpen && showFullContent && (
+        <div className={`absolute mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden animate-slideDown ${
+          isNavbar ? "right-0" : "left-0"
+        }`}>
+          <div className="py-1">
+            <Link 
+              to="/dashboard/personal-details"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
+            >
+              <FiUser className="w-4 h-4" />
+              <span>Profile Settings</span>
+            </Link>
 
+            <div className="border-t border-gray-100 my-1" />
+
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className={`flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors duration-200 text-left ${
+                isLoggingOut
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-red-600 hover:bg-red-50 hover:text-red-700"
+              }`}
+            >
+              <FiLogOut className="w-4 h-4" />
+              <span>{isLoggingOut ? "Logging out..." : "Sign Out"}</span>
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Animation styles */}
+      <style jsx>{`
+        @keyframes slideDown {
+          0% {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slideDown {
+          animation: slideDown 0.1s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };

@@ -8,7 +8,7 @@ import { TopBar } from "./TopBar";
 
 const DashboardHome = () => {
   return (
-    <div className="bg-white rounded-lg py-4 shadow">
+    <div className="bg-white rounded-2xl py-4 shadow">
       {/* Top Bar */}
       <TopBar />
 

@@ -3,8 +3,6 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import DashboardHome from "./components/dashboard/DashboardHome";
-import User from "./pages/User";
-import Setting from "./pages/Setting";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -27,6 +25,7 @@ import FinalizeTaxYear from "./pages/FinalizeTaxYear";
 import PersonalDetails from "./pages/PersonalDetails";
 import NotFoundPage from "./pages/NotFoundPage";
 import ResetPassword from "./pages/ResetPassword";
+import Image from "./pages/Image";
 
 const App = () => {
   return (
@@ -49,8 +48,6 @@ const App = () => {
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardHome />} />
-          <Route path="users" element={<User />} />
-          <Route path="settings" element={<Setting />} />
           <Route path="income" element={<Income />} />
           <Route path="weekly-income" element={<WeeklyIncome />} />
           <Route path="expenses" element={<Expenses />} />
@@ -71,6 +68,8 @@ const App = () => {
           <Route path="buy-renew-plan" element={<BuyPlan />} />
           <Route path="tax-year" element={<FinalizeTaxYear />} />
           <Route path="personal-details" element={<PersonalDetails />} />
+          <Route path="image" element={<Image />} />
+
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />

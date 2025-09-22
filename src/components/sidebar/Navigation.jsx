@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { logoutApi } from "../../services/authService";
 import { useState } from "react";
 import { FaArrowDown, FaCalendarAlt, FaCar, FaChartPie, FaDollarSign, FaFileAlt, FaFolderOpen, FaIdCard, FaPercentage, FaRegCalendarCheck, FaShoppingCart, FaUpload } from "react-icons/fa";
+import { PoundSterlingIcon } from "lucide-react";
 
 const Navigation = ({ collapsed }) => {
   const location = useLocation();
@@ -15,9 +16,9 @@ const Navigation = ({ collapsed }) => {
 
   const navItems = [
     { to: "/dashboard", label: "Dashboard", icon: <FiHome /> },
-    { to: "/dashboard/settings", label: "Settings", icon: <FiSettings /> },
+    // { to: "/dashboard/settings", label: "Settings", icon: <FiSettings /> },
     { to: "/dashboard/personal-details", label: "Profile", icon: <FiUser /> },
-    { to: "/dashboard/income", label: "Income", icon: <FaDollarSign /> },
+    { to: "/dashboard/income", label: "Income", icon: <PoundSterlingIcon /> },
     { to: "/dashboard/weekly-income", label: "Weekly Income", icon: <FaCalendarAlt /> },
     { to: "/dashboard/expenses", label: "Expenses", icon: <FaArrowDown /> },
     { to: "/dashboard/weekly-expenses", label: "Weekly Expenses", icon: <FaCalendarAlt /> },

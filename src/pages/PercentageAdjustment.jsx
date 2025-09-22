@@ -1,14 +1,36 @@
 // src/pages/PercentageAdjustment.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ChevronRight, Car, Phone, Settings, Calculator, Save, Home, ChevronDown, Check } from "lucide-react";
-import { percentageAdjustmentsPostApi } from "../services/dashboard";
+import {
+  ChevronDown,
+  Check,
+  Car,
+  Phone,
+  Settings,
+  Calculator,
+  Save,
+} from "lucide-react";
+import {
+  percentageAdjustmentsPostApi,
+  percentageAdjustmentsGetAllApi,
+  percentageAdjustmentsPutApi,
+} from "../services/dashboard";
+import { useTradingYear } from "../context/TradingYearContext";
+import PageHeader from "../components/PageHeader";
+import LoadingSkeleton from "../components/LoadingSkeleton";
 
 // Custom Dropdown Component
-const CustomDropdown = ({ name, value, onChange, options, placeholder, icon, error }) => {
+const CustomDropdown = ({
+  name,
+  value,
+  onChange,
+  options,
+  placeholder,
+  icon,
+  error,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
 
@@ -17,12 +39,12 @@ const CustomDropdown = ({ name, value, onChange, options, placeholder, icon, err
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
-        setSearchTerm('');
+        setSearchTerm("");
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Focus search input when dropdown opens
@@ -33,43 +55,49 @@ const CustomDropdown = ({ name, value, onChange, options, placeholder, icon, err
   }, [isOpen]);
 
   // Filter options based on search term
-  const filteredOptions = options.filter(option => 
+  const filteredOptions = options.filter((option) =>
     option.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSelect = (option) => {
     onChange({ target: { name, value: option } });
     setIsOpen(false);
-    setSearchTerm('');
+    setSearchTerm("");
   };
 
-  const displayValue = value ? (options.includes('Yes') ? value : `${value}%`) : '';
+  const displayValue = value
+    ? options.includes("Yes")
+      ? value
+      : `${value}%`
+    : "";
 
   return (
     <div ref={dropdownRef} className="relative">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full ${icon ? 'pl-10' : 'pl-4'} pr-10 py-3 bg-white border-2 rounded-xl text-gray-700 cursor-pointer transition-all duration-200 ${
-          error 
-            ? "border-red-300 bg-red-50" 
-            : value 
-              ? "border-blue-300 bg-blue-50" 
-              : "border-gray-200 hover:border-gray-300"
-        } ${isOpen ? 'border-blue-500 ring-4 ring-blue-100' : ''}`}
+        className={`w-full ${
+          icon ? "pl-10" : "pl-4"
+        } pr-10 py-3 bg-white border-2 rounded-xl text-gray-700 cursor-pointer transition-all duration-200 ${
+          error
+            ? "border-red-300 bg-red-50"
+            : value
+            ? "border-blue-300 bg-blue-50"
+            : "border-gray-200 hover:border-gray-300"
+        } ${isOpen ? "border-blue-500 ring-4 ring-blue-100" : ""}`}
       >
         {icon && (
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
             {icon}
           </div>
         )}
-        
+
         <div className="flex items-center justify-between">
-          <span className={value ? 'text-gray-900' : 'text-gray-500'}>
+          <span className={value ? "text-gray-900" : "text-gray-500"}>
             {displayValue || placeholder}
           </span>
-          <ChevronDown 
+          <ChevronDown
             className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
-              isOpen ? 'rotate-180' : ''
+              isOpen ? "rotate-180" : ""
             }`}
           />
         </div>
@@ -92,7 +120,7 @@ const CustomDropdown = ({ name, value, onChange, options, placeholder, icon, err
               />
             </div>
           )}
-          
+
           {/* Options List */}
           <div className="max-h-48 overflow-y-auto">
             {filteredOptions.length === 0 ? (
@@ -102,24 +130,26 @@ const CustomDropdown = ({ name, value, onChange, options, placeholder, icon, err
             ) : (
               filteredOptions.map((option) => {
                 const isSelected = option === value;
-                const displayOption = options.includes('Yes') ? option : `${option}%`;
-                
+                const displayOption = options.includes("Yes")
+                  ? option
+                  : `${option}%`;
+
                 return (
                   <div
                     key={option}
                     onClick={() => handleSelect(option)}
                     className={`px-4 py-3 cursor-pointer transition-colors duration-150 flex items-center justify-between ${
-                      isSelected 
-                        ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-500' 
-                        : 'hover:bg-gray-50 text-gray-700'
+                      isSelected
+                        ? "bg-blue-50 text-blue-700 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50 text-gray-700"
                     }`}
                   >
-                    <span className={`text-sm ${isSelected ? 'font-semibold' : ''}`}>
+                    <span
+                      className={`text-sm ${isSelected ? "font-semibold" : ""}`}
+                    >
                       {displayOption}
                     </span>
-                    {isSelected && (
-                      <Check className="w-4 h-4 text-blue-600" />
-                    )}
+                    {isSelected && <Check className="w-4 h-4 text-blue-600" />}
                   </div>
                 );
               })
@@ -145,6 +175,72 @@ const PercentageAdjustment = () => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [existingData, setExistingData] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Get API refresh trigger from trading year context
+  const { apiRefreshTrigger, activeTradingYear } = useTradingYear();
+
+  // Fetch existing data
+  const fetchExistingData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await percentageAdjustmentsGetAllApi();
+
+      if (response.data) {
+        const data = response.data;
+        setExistingData(data);
+        setIsUpdating(true);
+
+        // Populate form with existing data
+        setFormData({
+          car: data.private_use_adj_car?.toString() || "",
+          telephone: data.private_use_adj_phone?.toString() || "",
+          override_mileage: data.override_mileage || "",
+          got_another_job: data.got_another_job || "",
+          cash: data.radio_rent_cash?.toString() || "",
+          cardBank: data.radio_rent_card_bank?.toString() || "",
+          accountContract: data.radio_rent_acc_contract?.toString() || "",
+          subContract: data.radio_rent_sub_contract?.toString() || "",
+        });
+
+        toast.success("Existing data loaded successfully!");
+      }
+    } catch (error) {
+      console.log("No existing data found, starting with empty form");
+      setIsUpdating(false);
+      // Reset form data when no existing data
+      setFormData({
+        car: "",
+        telephone: "",
+        override_mileage: "",
+        got_another_job: "",
+        cash: "",
+        cardBank: "",
+        accountContract: "",
+        subContract: "",
+      });
+      setExistingData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchExistingData();
+  }, []);
+
+  // Listen for trading year changes and refresh data
+  useEffect(() => {
+    if (apiRefreshTrigger > 0) {
+      console.log(
+        "PercentageAdjustment: Refreshing data due to trading year change"
+      );
+      fetchExistingData();
+    }
+  }, [apiRefreshTrigger]);
 
   // handle input change
   const handleChange = (e) => {
@@ -183,24 +279,28 @@ const PercentageAdjustment = () => {
     };
 
     try {
-      console.log("👉 Sending to API:", apiData);
-      await percentageAdjustmentsPostApi(apiData);
+      console.log("Sending to API:", apiData);
 
-      toast.success("Percentage adjustments saved successfully!");
-      setFormData({
-        car: "",
-        telephone: "",
-        override_mileage: "",
-        got_another_job: "",
-        cash: "",
-        cardBank: "",
-        accountContract: "",
-        subContract: "",
-      });
+      if (isUpdating && existingData?.id) {
+        // Use PUT API for updates
+        await percentageAdjustmentsPutApi(existingData.id, apiData);
+        toast.success("Percentage adjustments updated successfully!");
+      } else {
+        // Use POST API for creation
+        await percentageAdjustmentsPostApi(apiData);
+        toast.success("Percentage adjustments saved successfully!");
+        setIsUpdating(true);
+      }
+
+      // Fetch updated data
+      await fetchExistingData();
     } catch (error) {
-      console.error("❌ API Error:", error);
+      console.error("API Error:", error);
       toast.error(
-        error.response?.data?.message || "Failed to save adjustments. Please try again."
+        error.response?.data?.message ||
+          `Failed to ${
+            isUpdating ? "update" : "save"
+          } adjustments. Please try again.`
       );
     } finally {
       setIsSubmitting(false);
@@ -210,14 +310,21 @@ const PercentageAdjustment = () => {
   const percentageOptions = Array.from({ length: 101 }, (_, i) => i.toString());
   const yesNoOptions = ["Yes", "No"];
 
-  const renderCustomDropdown = (name, value, options = percentageOptions, icon = null) => (
+  const renderCustomDropdown = (
+    name,
+    value,
+    options = percentageOptions,
+    icon = null
+  ) => (
     <div className="space-y-1">
       <CustomDropdown
         name={name}
         value={value}
         onChange={handleChange}
         options={options}
-        placeholder={options === yesNoOptions ? "Select option" : "Select percentage"}
+        placeholder={
+          options === yesNoOptions ? "Select option" : "Select percentage"
+        }
         icon={icon}
         error={errors[name]}
       />
@@ -232,70 +339,44 @@ const PercentageAdjustment = () => {
 
   const FormSection = ({ title, icon, children, description }) => (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-visible">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+      <div className="bg-blue-50 px-6 py-4 rounded-t-2xl">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 rounded-lg">
-            {icon}
+          <div className="p-2 bg-white/80 rounded-lg">
+            {React.cloneElement(icon, { className: "w-6 h-6 text-blue-700" })}
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-white">{title}</h2>
+            <h2 className="text-xl font-semibold text-blue-900">{title}</h2>
             {description && (
-              <p className="text-blue-100 text-sm mt-1">{description}</p>
+              <p className="text-blue-700 text-sm mt-1">{description}</p>
             )}
           </div>
         </div>
       </div>
-      <div className="p-6">
-        {children}
-      </div>
+      <div className="p-6">{children}</div>
     </div>
   );
 
+  if (isLoading) {
+    return <LoadingSkeleton type="percentage-adjustment" />;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-white rounded-2xl">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header Section */}
-        <div className="mb-8">
-          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-            <Link 
-              to="/dashboard" 
-              className="flex items-center gap-1 hover:text-blue-600 transition-colors"
-            >
-              <Home className="w-4 h-4" />
-              Dashboard
-            </Link>
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-gray-700 font-medium">Percentage Adjustment</span>
-          </nav>
-          
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Calculator className="w-8 h-8 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Percentage Adjustment
-                </h1>
-                <p className="text-gray-600 text-lg">
-                  Tax Year <span className="font-semibold text-blue-600">2025 / 2026</span>
-                </p>
-              </div>
-            </div>
-            
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-              <p className="text-blue-800 leading-relaxed">
-                Configure percentage adjustments for private use of your vehicle and telephone if you choose not to complete the full mileage register. These settings will affect your tax calculations for the current year.
-              </p>
-            </div>
-          </div>
-        </div>
+       <PageHeader
+  icon={<Calculator />}
+  title="Percentage Adjustment"
+  currentPage="Percentage Adjustment"
+  showTradingYear={true}
+  activeTradingYear={activeTradingYear}
+  description="Configure percentage adjustments for private use of your vehicle and telephone."
+/>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Private Use Adjustments */}
           <FormSection
             title="Private Use Adjustment"
-            icon={<Settings className="w-6 h-6 text-white" />}
+            icon={<Settings />}
             description="Set percentages for vehicle and telephone private usage"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -303,37 +384,55 @@ const PercentageAdjustment = () => {
                 <label className="block text-sm font-semibold text-gray-700">
                   Car Usage
                 </label>
-                {renderCustomDropdown("car", formData.car, percentageOptions, <Car className="w-5 h-5" />)}
+                {renderCustomDropdown(
+                  "car",
+                  formData.car,
+                  percentageOptions,
+                  <Car className="w-5 h-5" />
+                )}
                 <p className="text-xs text-gray-500">
                   Percentage of private vehicle usage
                 </p>
               </div>
-              
+
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-700">
                   Telephone Usage
                 </label>
-                {renderCustomDropdown("telephone", formData.telephone, percentageOptions, <Phone className="w-5 h-5" />)}
+                {renderCustomDropdown(
+                  "telephone",
+                  formData.telephone,
+                  percentageOptions,
+                  <Phone className="w-5 h-5" />
+                )}
                 <p className="text-xs text-gray-500">
                   Percentage of private telephone usage
                 </p>
               </div>
-              
+
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-700">
                   Override Mileage
                 </label>
-                {renderCustomDropdown("override_mileage", formData.override_mileage, yesNoOptions)}
+                {renderCustomDropdown(
+                  "override_mileage",
+                  formData.override_mileage,
+                  yesNoOptions
+                )}
                 <p className="text-xs text-gray-500">
                   Override automatic mileage calculations
                 </p>
               </div>
-              
+
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-700">
                   Got Another Job
                 </label>
-                {renderCustomDropdown("got_another_job", formData.got_another_job, yesNoOptions)}
+                {renderCustomDropdown(
+                  "got_another_job",
+                  formData.got_another_job,
+                  yesNoOptions
+                )}
                 <p className="text-xs text-gray-500">
                   Do you have additional employment?
                 </p>
@@ -344,10 +443,13 @@ const PercentageAdjustment = () => {
           {/* Radio Rent Adjustments */}
           <FormSection
             title="Radio Rent & Commission Adjustments"
-            icon={<Calculator className="w-6 h-6 text-white" />}
+            icon={<Calculator />}
             description="Configure percentage adjustments for different payment methods"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ position: 'relative', zIndex: '1' }}>
+            <div
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              style={{ position: "relative", zIndex: "1" }}
+            >
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-700">
                   Cash Transactions
@@ -357,7 +459,7 @@ const PercentageAdjustment = () => {
                   Percentage for cash-based transactions
                 </p>
               </div>
-              
+
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-700">
                   Card / Bank Transactions
@@ -367,17 +469,20 @@ const PercentageAdjustment = () => {
                   Percentage for card and bank transactions
                 </p>
               </div>
-              
+
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-700">
                   Account / Contract
                 </label>
-                {renderCustomDropdown("accountContract", formData.accountContract)}
+                {renderCustomDropdown(
+                  "accountContract",
+                  formData.accountContract
+                )}
                 <p className="text-xs text-gray-500">
                   Percentage for account-based contracts
                 </p>
               </div>
-              
+
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-700">
                   Sub Contract
@@ -394,12 +499,16 @@ const PercentageAdjustment = () => {
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
               <div className="text-center sm:text-left">
-                <h3 className="font-semibold text-gray-900">Ready to Submit?</h3>
+                <h3 className="font-semibold text-gray-900">
+                  {isUpdating ? "Ready to Update?" : "Ready to Submit?"}
+                </h3>
                 <p className="text-gray-600 text-sm">
-                  Review your adjustments and save changes
+                  {isUpdating
+                    ? "Review your adjustments and update changes"
+                    : "Review your adjustments and save changes"}
                 </p>
               </div>
-              
+
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -412,12 +521,12 @@ const PercentageAdjustment = () => {
                 {isSubmitting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Submitting...
+                    {isUpdating ? "Updating..." : "Submitting..."}
                   </>
                 ) : (
                   <>
                     <Save className="w-5 h-5" />
-                    Save Adjustments
+                    {isUpdating ? "Update Adjustments" : "Save Adjustments"}
                   </>
                 )}
               </button>

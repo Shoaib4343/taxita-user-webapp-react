@@ -6,6 +6,7 @@ import { createTransactionApi } from "../services/dashboard";
 const IncomeModal = ({ open, onClose, card, selectedDay, onSuccess }) => {
   const [visible, setVisible] = useState(false);
   const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -51,7 +52,8 @@ const IncomeModal = ({ open, onClose, card, selectedDay, onSuccess }) => {
       formData.append("account_type_id", 1);
       formData.append("account_id", card.id);
       formData.append("amount", numAmount);
-      formData.append("description", `Income in ${card.title}`);
+      // Use description if provided, otherwise use default
+      formData.append("description", description.trim() || `Income in ${card.title}`);
       formData.append("date", selectedDay.date);
 
       // Keep the original simple file handling that works
@@ -67,6 +69,7 @@ const IncomeModal = ({ open, onClose, card, selectedDay, onSuccess }) => {
         );
 
         setAmount("");
+        setDescription("");
         setFile(null);
         setErrors({});
 
@@ -83,7 +86,7 @@ const IncomeModal = ({ open, onClose, card, selectedDay, onSuccess }) => {
 
           // Show general toast for non-field specific errors
           const generalErrors = Object.entries(res.data.errors)
-            .filter(([key]) => !["amount", "attachment", "date"].includes(key))
+            .filter(([key]) => !["amount", "description", "attachment", "date"].includes(key))
             .flatMap(([, msgs]) => msgs);
 
           generalErrors.forEach((errMsg) => toast.error(errMsg));
@@ -97,7 +100,7 @@ const IncomeModal = ({ open, onClose, card, selectedDay, onSuccess }) => {
         setErrors(err.response.data.errors);
 
         const generalErrors = Object.entries(err.response.data.errors)
-          .filter(([key]) => !["amount", "attachment", "date"].includes(key))
+          .filter(([key]) => !["amount", "description", "attachment", "date"].includes(key))
           .flatMap(([, msgs]) => msgs);
 
         generalErrors.forEach((errMsg) => toast.error(errMsg));
@@ -176,6 +179,34 @@ const IncomeModal = ({ open, onClose, card, selectedDay, onSuccess }) => {
             {errors.amount && (
               <div className="mt-1">
                 {errors.amount.map((error, index) => (
+                  <p key={index} className="text-sm text-red-600">
+                    {error}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Description - Now Optional */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description <span className="text-gray-400 text-xs">(Optional)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter description (optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={loading}
+              className={`w-full border rounded-xl px-4 py-3 shadow-sm focus:outline-none focus:ring-2 transition disabled:bg-gray-100 ${
+                errors.description
+                  ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
+            />
+            {errors.description && (
+              <div className="mt-1">
+                {errors.description.map((error, index) => (
                   <p key={index} className="text-sm text-red-600">
                     {error}
                   </p>
