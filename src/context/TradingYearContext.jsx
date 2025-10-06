@@ -51,6 +51,7 @@ export const TradingYearProvider = ({ children }) => {
       setError(null);
       
       const res = await previousTradingYearApi();
+      console.log('res of the context for the id ', res.data)
       
       if (res.data.success && res.data.data) {
         setTradingYears(res.data.data);

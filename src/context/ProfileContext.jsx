@@ -1,3 +1,1018 @@
+// // src/context/ProfileContext.js
+// import React, { createContext, useContext, useReducer, useEffect } from 'react';
+// import * as dashboardAPI from '../services/dashboard';
+// import { useAuth } from './AuthContext';
+
+// // ===== CONSTANTS =====
+// const initialState = {
+//   profileData: null,
+//   addresses: [],
+//   roles: [],
+//   loading: {
+//     profile: false,
+//     addresses: false,
+//     roles: false,
+//     uploadingImage: false,
+//     savingProfile: false,
+//     savingAddress: false,
+//     changingPassword: false,
+//   },
+//   errors: {
+//     profile: null,
+//     addresses: null,
+//     roles: null,
+//   },
+//   fetched: {
+//     profile: false,
+//     addresses: false,
+//     roles: false,
+//   },
+//   toasts: []
+// };
+
+// const ACTIONS = {
+//   SET_LOADING: 'SET_LOADING',
+//   SET_DATA: 'SET_DATA',
+//   SET_ERROR: 'SET_ERROR',
+//   SET_FETCHED: 'SET_FETCHED',
+//   UPDATE_PROFILE_FIELD: 'UPDATE_PROFILE_FIELD',
+//   ADD_ADDRESS: 'ADD_ADDRESS',
+//   UPDATE_ADDRESS: 'UPDATE_ADDRESS',
+//   REMOVE_ADDRESS: 'REMOVE_ADDRESS',
+//   ADD_TOAST: 'ADD_TOAST',
+//   REMOVE_TOAST: 'REMOVE_TOAST',
+//   RESET_STATE: 'RESET_STATE'
+// };
+
+// // ===== REDUCER =====
+// const profileReducer = (state, action) => {
+//   switch (action.type) {
+//     case ACTIONS.SET_LOADING:
+//       return {
+//         ...state,
+//         loading: { ...state.loading, [action.key]: action.payload }
+//       };
+
+//     case ACTIONS.SET_DATA:
+//       return {
+//         ...state,
+//         [action.key]: action.payload,
+//         loading: { ...state.loading, [action.key]: false },
+//         errors: { ...state.errors, [action.key]: null },
+//         fetched: { ...state.fetched, [action.key]: true }
+//       };
+
+//     case ACTIONS.SET_ERROR:
+//       return {
+//         ...state,
+//         errors: { ...state.errors, [action.key]: action.payload },
+//         loading: { ...state.loading, [action.key]: false }
+//       };
+
+//     case ACTIONS.SET_FETCHED:
+//       return {
+//         ...state,
+//         fetched: { ...state.fetched, [action.key]: action.payload }
+//       };
+
+//     case ACTIONS.UPDATE_PROFILE_FIELD:
+//       return {
+//         ...state,
+//         profileData: {
+//           ...state.profileData,
+//           [action.field]: action.value
+//         }
+//       };
+
+//     case ACTIONS.ADD_ADDRESS:
+//       return {
+//         ...state,
+//         addresses: [...state.addresses, action.payload]
+//       };
+
+//     case ACTIONS.UPDATE_ADDRESS:
+//       return {
+//         ...state,
+//         addresses: state.addresses.map(addr => 
+//           addr.id === action.payload.id ? action.payload : addr
+//         )
+//       };
+
+//     case ACTIONS.REMOVE_ADDRESS:
+//       return {
+//         ...state,
+//         addresses: state.addresses.filter(addr => addr.id !== action.payload)
+//       };
+
+//     case ACTIONS.ADD_TOAST:
+//       return {
+//         ...state,
+//         toasts: [...state.toasts, { ...action.payload, id: Date.now() }]
+//       };
+
+//     case ACTIONS.REMOVE_TOAST:
+//       return {
+//         ...state,
+//         toasts: state.toasts.filter(toast => toast.id !== action.payload)
+//       };
+
+//     case ACTIONS.RESET_STATE:
+//       return initialState;
+
+//     default:
+//       return state;
+//   }
+// };
+
+// // ===== CONTEXT SETUP =====
+// const ProfileContext = createContext();
+
+// export const ProfileContextProvider = ({ children }) => {
+//   const [state, dispatch] = useReducer(profileReducer, initialState);
+//   const { auth } = useAuth();
+
+//   // ===== HELPER FUNCTIONS =====
+//   const showToast = (message, type = 'info') => {
+//     dispatch({ type: ACTIONS.ADD_TOAST, payload: { message, type } });
+//   };
+
+//   const removeToast = (id) => {
+//     dispatch({ type: ACTIONS.REMOVE_TOAST, payload: id });
+//   };
+
+//   const resetState = () => {
+//     dispatch({ type: ACTIONS.RESET_STATE });
+//   };
+
+//   const handleApiCall = async (apiCall, loadingKey, dataKey, successMessage) => {
+//     if (!auth.isAuthenticated) return null;
+    
+//     dispatch({ type: ACTIONS.SET_LOADING, key: loadingKey, payload: true });
+    
+//     try {
+//       const response = await apiCall();
+//       const data = response.data;
+      
+//       if (dataKey) {
+//         dispatch({ type: ACTIONS.SET_DATA, key: dataKey, payload: data });
+//       }
+      
+//       if (successMessage) {
+//         showToast(successMessage, "success");
+//       }
+      
+//       return data;
+//     } catch (error) {
+//       const errorMessage = error.response?.data?.message || "Operation failed";
+//       if (dataKey) {
+//         dispatch({ type: ACTIONS.SET_ERROR, key: dataKey, payload: errorMessage });
+//       }
+//       showToast(errorMessage, "error");
+//       throw error;
+//     } finally {
+//       dispatch({ type: ACTIONS.SET_LOADING, key: loadingKey, payload: false });
+//     }
+//   };
+
+//   // ===== PROFILE FUNCTIONS =====
+//   const fetchProfileData = async (force = false) => {
+//     if (!auth.isAuthenticated) return null;
+//     if (state.fetched.profile && !force) return state.profileData;
+
+//     return handleApiCall(
+//       () => dashboardAPI.profileSettingGetApi(),
+//       'profile',
+//       'profileData',
+//       !state.fetched.profile ? "Profile data loaded successfully" : null
+//     );
+//   };
+
+//   const updateProfile = async (updatedData) => {
+//     const formData = new FormData();
+    
+//     if (updatedData.profile_image instanceof File) {
+//       formData.append('profile_image', updatedData.profile_image);
+//     }
+    
+//     Object.keys(updatedData).forEach(key => {
+//       if (key !== 'profile_image' && updatedData[key] !== null && updatedData[key] !== undefined) {
+//         formData.append(key, updatedData[key]);
+//       }
+//     });
+
+//     const result = await handleApiCall(
+//       () => dashboardAPI.profileSettingPutApi(formData),
+//       'savingProfile',
+//       null,
+//       "Profile updated successfully!"
+//     );
+    
+//     dispatch({ type: ACTIONS.SET_DATA, key: 'profileData', payload: updatedData });
+//     return result;
+//   };
+
+//   const uploadProfileImage = async (file) => {
+//     const formData = new FormData();
+//     formData.append('profile_image', file);
+
+//     await handleApiCall(
+//       () => dashboardAPI.profileSettingImageApi(formData),
+//       'uploadingImage',
+//       null,
+//       "Profile image updated successfully!"
+//     );
+    
+//     await fetchProfileData(true);
+//   };
+
+//   const changePassword = async (passwordData) => {
+//     return handleApiCall(
+//       () => dashboardAPI.changePasswordApi(passwordData),
+//       'changingPassword',
+//       null,
+//       "Password changed successfully!"
+//     );
+//   };
+
+//   const updateProfileField = (field, value) => {
+//     dispatch({ type: ACTIONS.UPDATE_PROFILE_FIELD, field, value });
+//   };
+
+//   // ===== ADDRESS FUNCTIONS =====
+//   const fetchAddresses = async (force = false) => {
+//     if (!auth.isAuthenticated) return [];
+//     if (state.fetched.addresses && !force) return state.addresses;
+
+//     return handleApiCall(
+//       () => dashboardAPI.allProfileAddresses(),
+//       'addresses',
+//       'addresses'
+//     );
+//   };
+
+//   const createAddress = async (addressData) => {
+//     const result = await handleApiCall(
+//       () => dashboardAPI.createProfileAddress(addressData),
+//       'savingAddress',
+//       null,
+//       "Address added successfully!"
+//     );
+    
+//     await fetchAddresses(true);
+//     return result;
+//   };
+
+//   const updateAddress = async (id, addressData) => {
+//     await handleApiCall(
+//       () => dashboardAPI.updateProfileAddress(id, addressData),
+//       'savingAddress',
+//       null,
+//       "Address updated successfully!"
+//     );
+    
+//     dispatch({ type: ACTIONS.UPDATE_ADDRESS, payload: { ...addressData, id } });
+//   };
+
+//   const deleteAddress = async (id) => {
+//     await handleApiCall(
+//       () => dashboardAPI.deleteProfileAddress(id),
+//       'savingAddress',
+//       null,
+//       "Address deleted successfully!"
+//     );
+    
+//     dispatch({ type: ACTIONS.REMOVE_ADDRESS, payload: id });
+//   };
+
+//   const getSingleAddress = async (id) => {
+//     if (!auth.isAuthenticated) return null;
+    
+//     try {
+//       const response = await dashboardAPI.singleProfileAddress(id);
+//       return response.data.profile_address;
+//     } catch (error) {
+//       const errorMessage = error.response?.data?.message || "Failed to load address details";
+//       showToast(errorMessage, "error");
+//       throw error;
+//     }
+//   };
+
+//   // ===== ROLES FUNCTIONS =====
+//   const fetchRoles = async (force = false) => {
+//     if (!auth.isAuthenticated) return [];
+//     if (state.fetched.roles && !force) return state.roles;
+
+//     return handleApiCall(
+//       () => dashboardAPI.getRolesApi(),
+//       'roles',
+//       'roles'
+//     );
+//   };
+
+//   // ===== EFFECTS =====
+//   useEffect(() => {
+//     if (auth.isAuthenticated) {
+//       if (!state.fetched.profile) fetchProfileData();
+//       if (!state.fetched.addresses) fetchAddresses();
+//       if (!state.fetched.roles) fetchRoles();
+//     }
+//   }, [auth.isAuthenticated]);
+
+//   useEffect(() => {
+//     if (!auth.isAuthenticated && (state.fetched.profile || state.fetched.addresses || state.fetched.roles)) {
+//       resetState();
+//     }
+//   }, [auth.isAuthenticated]);
+
+//   // ===== CONTEXT VALUE =====
+//   const contextValue = {
+//     // State (destructured for easier access)
+//     profileData: state.profileData,
+//     addresses: state.addresses,
+//     roles: state.roles,
+    
+//     // Loading states
+//     profileLoading: state.loading.profile,
+//     addressesLoading: state.loading.addresses,
+//     rolesLoading: state.loading.roles,
+//     uploadingImage: state.loading.uploadingImage,
+//     savingProfile: state.loading.savingProfile,
+//     savingAddress: state.loading.savingAddress,
+//     changingPassword: state.loading.changingPassword,
+    
+//     // Error states
+//     profileError: state.errors.profile,
+//     addressesError: state.errors.addresses,
+//     rolesError: state.errors.roles,
+    
+//     // Fetched flags
+//     profileFetched: state.fetched.profile,
+//     addressesFetched: state.fetched.addresses,
+//     rolesFetched: state.fetched.roles,
+    
+//     // Toast
+//     toasts: state.toasts,
+    
+//     // Actions
+//     fetchProfileData,
+//     updateProfile,
+//     uploadProfileImage,
+//     changePassword,
+//     updateProfileField,
+//     fetchAddresses,
+//     createAddress,
+//     updateAddress,
+//     deleteAddress,
+//     getSingleAddress,
+//     fetchRoles,
+//     showToast,
+//     removeToast,
+//     resetState
+//   };
+
+//   return (
+//     <ProfileContext.Provider value={contextValue}>
+//       {children}
+//     </ProfileContext.Provider>
+//   );
+// };
+
+// // ===== CUSTOM HOOK =====
+// export const useProfile = () => {
+//   const context = useContext(ProfileContext);
+//   if (!context) {
+//     throw new Error('useProfile must be used within a ProfileProvider');
+//   }
+//   return context;
+// };
+
+// export default ProfileContext;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/context/ProfileContext.js
+// import React, { createContext, useContext, useReducer, useEffect } from 'react';
+// import * as dashboardAPI from '../services/dashboard';
+// import { useAuth } from './AuthContext';
+
+// // ===== CONSTANTS =====
+// const initialState = {
+//   profileData: null,
+//   profileImageUrl: null, // Add profile image URL to state
+//   addresses: [],
+//   roles: [],
+//   loading: {
+//     profile: false,
+//     profileImage: false, // Add profile image loading state
+//     addresses: false,
+//     roles: false,
+//     uploadingImage: false,
+//     savingProfile: false,
+//     savingAddress: false,
+//     changingPassword: false,
+//   },
+//   errors: {
+//     profile: null,
+//     profileImage: null, // Add profile image error state
+//     addresses: null,
+//     roles: null,
+//   },
+//   fetched: {
+//     profile: false,
+//     profileImage: false, // Add profile image fetched flag
+//     addresses: false,
+//     roles: false,
+//   },
+//   toasts: []
+// };
+
+// const ACTIONS = {
+//   SET_LOADING: 'SET_LOADING',
+//   SET_DATA: 'SET_DATA',
+//   SET_ERROR: 'SET_ERROR',
+//   SET_FETCHED: 'SET_FETCHED',
+//   SET_PROFILE_IMAGE_URL: 'SET_PROFILE_IMAGE_URL', // Add action for profile image URL
+//   UPDATE_PROFILE_FIELD: 'UPDATE_PROFILE_FIELD',
+//   ADD_ADDRESS: 'ADD_ADDRESS',
+//   UPDATE_ADDRESS: 'UPDATE_ADDRESS',
+//   REMOVE_ADDRESS: 'REMOVE_ADDRESS',
+//   ADD_TOAST: 'ADD_TOAST',
+//   REMOVE_TOAST: 'REMOVE_TOAST',
+//   RESET_STATE: 'RESET_STATE'
+// };
+
+// // ===== REDUCER =====
+// const profileReducer = (state, action) => {
+//   switch (action.type) {
+//     case ACTIONS.SET_LOADING:
+//       return {
+//         ...state,
+//         loading: { ...state.loading, [action.key]: action.payload }
+//       };
+
+//     case ACTIONS.SET_DATA:
+//       return {
+//         ...state,
+//         [action.key]: action.payload,
+//         loading: { ...state.loading, [action.key]: false },
+//         errors: { ...state.errors, [action.key]: null },
+//         fetched: { ...state.fetched, [action.key]: true }
+//       };
+
+//     case ACTIONS.SET_ERROR:
+//       return {
+//         ...state,
+//         errors: { ...state.errors, [action.key]: action.payload },
+//         loading: { ...state.loading, [action.key]: false }
+//       };
+
+//     case ACTIONS.SET_FETCHED:
+//       return {
+//         ...state,
+//         fetched: { ...state.fetched, [action.key]: action.payload }
+//       };
+
+//     case ACTIONS.SET_PROFILE_IMAGE_URL:
+//       return {
+//         ...state,
+//         profileImageUrl: action.payload,
+//         loading: { ...state.loading, profileImage: false },
+//         errors: { ...state.errors, profileImage: null },
+//         fetched: { ...state.fetched, profileImage: true }
+//       };
+
+//     case ACTIONS.UPDATE_PROFILE_FIELD:
+//       return {
+//         ...state,
+//         profileData: {
+//           ...state.profileData,
+//           [action.field]: action.value
+//         }
+//       };
+
+//     case ACTIONS.ADD_ADDRESS:
+//       return {
+//         ...state,
+//         addresses: [...state.addresses, action.payload]
+//       };
+
+//     case ACTIONS.UPDATE_ADDRESS:
+//       return {
+//         ...state,
+//         addresses: state.addresses.map(addr => 
+//           addr.id === action.payload.id ? action.payload : addr
+//         )
+//       };
+
+//     case ACTIONS.REMOVE_ADDRESS:
+//       return {
+//         ...state,
+//         addresses: state.addresses.filter(addr => addr.id !== action.payload)
+//       };
+
+//     case ACTIONS.ADD_TOAST:
+//       return {
+//         ...state,
+//         toasts: [...state.toasts, { ...action.payload, id: Date.now() }]
+//       };
+
+//     case ACTIONS.REMOVE_TOAST:
+//       return {
+//         ...state,
+//         toasts: state.toasts.filter(toast => toast.id !== action.payload)
+//       };
+
+//     case ACTIONS.RESET_STATE:
+//       // Clean up any existing profile image URL when resetting
+//       if (initialState.profileImageUrl) {
+//         URL.revokeObjectURL(initialState.profileImageUrl);
+//       }
+//       return initialState;
+
+//     default:
+//       return state;
+//   }
+// };
+
+// // ===== CONTEXT SETUP =====
+// const ProfileContext = createContext();
+
+// export const ProfileContextProvider = ({ children }) => {
+//   const [state, dispatch] = useReducer(profileReducer, initialState);
+//   const { auth } = useAuth();
+
+//   // ===== HELPER FUNCTIONS =====
+//   const showToast = (message, type = 'info') => {
+//     dispatch({ type: ACTIONS.ADD_TOAST, payload: { message, type } });
+//   };
+
+//   const removeToast = (id) => {
+//     dispatch({ type: ACTIONS.REMOVE_TOAST, payload: id });
+//   };
+
+//   const resetState = () => {
+//     dispatch({ type: ACTIONS.RESET_STATE });
+//   };
+
+//   const handleApiCall = async (apiCall, loadingKey, dataKey, successMessage) => {
+//     if (!auth.isAuthenticated) return null;
+    
+//     dispatch({ type: ACTIONS.SET_LOADING, key: loadingKey, payload: true });
+    
+//     try {
+//       const response = await apiCall();
+//       const data = response.data;
+      
+//       if (dataKey) {
+//         dispatch({ type: ACTIONS.SET_DATA, key: dataKey, payload: data });
+//       }
+      
+//       if (successMessage) {
+//         showToast(successMessage, "success");
+//       }
+      
+//       return data;
+//     } catch (error) {
+//       const errorMessage = error.response?.data?.message || "Operation failed";
+//       if (dataKey) {
+//         dispatch({ type: ACTIONS.SET_ERROR, key: dataKey, payload: errorMessage });
+//       }
+//       showToast(errorMessage, "error");
+//       throw error;
+//     } finally {
+//       dispatch({ type: ACTIONS.SET_LOADING, key: loadingKey, payload: false });
+//     }
+//   };
+
+//   // ===== PROFILE IMAGE FUNCTIONS =====
+//   const fetchProfileImage = async (force = false) => {
+//     if (!auth.isAuthenticated) return null;
+//     if (state.fetched.profileImage && !force) return state.profileImageUrl;
+
+//     dispatch({ type: ACTIONS.SET_LOADING, key: 'profileImage', payload: true });
+    
+//     try {
+//       const imageRes = await dashboardAPI.downloadProfileImageApi();
+      
+//       // Clean up previous image URL if it exists
+//       if (state.profileImageUrl) {
+//         URL.revokeObjectURL(state.profileImageUrl);
+//       }
+      
+//       const imgUrl = URL.createObjectURL(imageRes.data);
+//       dispatch({ type: ACTIONS.SET_PROFILE_IMAGE_URL, payload: imgUrl });
+      
+//       return imgUrl;
+//     } catch (error) {
+//       console.error("Error fetching profile image:", error);
+//       dispatch({ type: ACTIONS.SET_ERROR, key: 'profileImage', payload: "Failed to load profile image" });
+//       dispatch({ type: ACTIONS.SET_PROFILE_IMAGE_URL, payload: null });
+//       return null;
+//     }
+//   };
+
+//   // ===== PROFILE FUNCTIONS =====
+//   const fetchProfileData = async (force = false) => {
+//     if (!auth.isAuthenticated) return null;
+//     if (state.fetched.profile && !force) return state.profileData;
+
+//     return handleApiCall(
+//       () => dashboardAPI.profileSettingGetApi(),
+//       'profile',
+//       'profileData',
+//       !state.fetched.profile ? "Profile data loaded successfully" : null
+//     );
+//   };
+
+//   const updateProfile = async (updatedData) => {
+//     const formData = new FormData();
+    
+//     if (updatedData.profile_image instanceof File) {
+//       formData.append('profile_image', updatedData.profile_image);
+//     }
+    
+//     Object.keys(updatedData).forEach(key => {
+//       if (key !== 'profile_image' && updatedData[key] !== null && updatedData[key] !== undefined) {
+//         formData.append(key, updatedData[key]);
+//       }
+//     });
+
+//     const result = await handleApiCall(
+//       () => dashboardAPI.profileSettingPutApi(formData),
+//       'savingProfile',
+//       null,
+//       "Profile updated successfully!"
+//     );
+    
+//     dispatch({ type: ACTIONS.SET_DATA, key: 'profileData', payload: updatedData });
+//     return result;
+//   };
+
+//   const uploadProfileImage = async (file) => {
+//     const formData = new FormData();
+//     formData.append('profile_image', file);
+
+//     await handleApiCall(
+//       () => dashboardAPI.profileSettingImageApi(formData),
+//       'uploadingImage',
+//       null,
+//       "Profile image updated successfully!"
+//     );
+    
+//     // Refresh both profile data and profile image after upload
+//     await Promise.all([
+//       fetchProfileData(true),
+//       fetchProfileImage(true)
+//     ]);
+//   };
+
+//   const changePassword = async (passwordData) => {
+//     return handleApiCall(
+//       () => dashboardAPI.changePasswordApi(passwordData),
+//       'changingPassword',
+//       null,
+//       "Password changed successfully!"
+//     );
+//   };
+
+//   const updateProfileField = (field, value) => {
+//     dispatch({ type: ACTIONS.UPDATE_PROFILE_FIELD, field, value });
+//   };
+
+//   // ===== ADDRESS FUNCTIONS =====
+//   const fetchAddresses = async (force = false) => {
+//     if (!auth.isAuthenticated) return [];
+//     if (state.fetched.addresses && !force) return state.addresses;
+
+//     return handleApiCall(
+//       () => dashboardAPI.allProfileAddresses(),
+//       'addresses',
+//       'addresses'
+//     );
+//   };
+
+//   const createAddress = async (addressData) => {
+//     const result = await handleApiCall(
+//       () => dashboardAPI.createProfileAddress(addressData),
+//       'savingAddress',
+//       null,
+//       "Address added successfully!"
+//     );
+    
+//     await fetchAddresses(true);
+//     return result;
+//   };
+
+//   const updateAddress = async (id, addressData) => {
+//     await handleApiCall(
+//       () => dashboardAPI.updateProfileAddress(id, addressData),
+//       'savingAddress',
+//       null,
+//       "Address updated successfully!"
+//     );
+    
+//     dispatch({ type: ACTIONS.UPDATE_ADDRESS, payload: { ...addressData, id } });
+//   };
+
+//   const deleteAddress = async (id) => {
+//     await handleApiCall(
+//       () => dashboardAPI.deleteProfileAddress(id),
+//       'savingAddress',
+//       null,
+//       "Address deleted successfully!"
+//     );
+    
+//     dispatch({ type: ACTIONS.REMOVE_ADDRESS, payload: id });
+//   };
+
+//   const getSingleAddress = async (id) => {
+//     if (!auth.isAuthenticated) return null;
+    
+//     try {
+//       const response = await dashboardAPI.singleProfileAddress(id);
+//       return response.data.profile_address;
+//     } catch (error) {
+//       const errorMessage = error.response?.data?.message || "Failed to load address details";
+//       showToast(errorMessage, "error");
+//       throw error;
+//     }
+//   };
+
+//   // ===== ROLES FUNCTIONS =====
+//   const fetchRoles = async (force = false) => {
+//     if (!auth.isAuthenticated) return [];
+//     if (state.fetched.roles && !force) return state.roles;
+
+//     return handleApiCall(
+//       () => dashboardAPI.getRolesApi(),
+//       'roles',
+//       'roles'
+//     );
+//   };
+
+//   // ===== EFFECTS =====
+//   useEffect(() => {
+//     if (auth.isAuthenticated) {
+//       if (!state.fetched.profile) fetchProfileData();
+//       if (!state.fetched.addresses) fetchAddresses();
+//       if (!state.fetched.roles) fetchRoles();
+//       if (!state.fetched.profileImage) fetchProfileImage(); // Fetch profile image
+//     }
+//   }, [auth.isAuthenticated]);
+
+//   useEffect(() => {
+//     if (!auth.isAuthenticated && (state.fetched.profile || state.fetched.addresses || state.fetched.roles || state.fetched.profileImage)) {
+//       resetState();
+//     }
+//   }, [auth.isAuthenticated]);
+
+//   // Clean up profile image URL when component unmounts
+//   useEffect(() => {
+//     return () => {
+//       if (state.profileImageUrl) {
+//         URL.revokeObjectURL(state.profileImageUrl);
+//       }
+//     };
+//   }, []);
+
+//   // ===== CONTEXT VALUE =====
+//   const contextValue = {
+//     // State (destructured for easier access)
+//     profileData: state.profileData,
+//     profileImageUrl: state.profileImageUrl, // Add profile image URL
+//     addresses: state.addresses,
+//     roles: state.roles,
+    
+//     // Loading states
+//     profileLoading: state.loading.profile,
+//     profileImageLoading: state.loading.profileImage, // Add profile image loading state
+//     addressesLoading: state.loading.addresses,
+//     rolesLoading: state.loading.roles,
+//     uploadingImage: state.loading.uploadingImage,
+//     savingProfile: state.loading.savingProfile,
+//     savingAddress: state.loading.savingAddress,
+//     changingPassword: state.loading.changingPassword,
+    
+//     // Error states
+//     profileError: state.errors.profile,
+//     profileImageError: state.errors.profileImage, // Add profile image error state
+//     addressesError: state.errors.addresses,
+//     rolesError: state.errors.roles,
+    
+//     // Fetched flags
+//     profileFetched: state.fetched.profile,
+//     profileImageFetched: state.fetched.profileImage, // Add profile image fetched flag
+//     addressesFetched: state.fetched.addresses,
+//     rolesFetched: state.fetched.roles,
+    
+//     // Toast
+//     toasts: state.toasts,
+    
+//     // Actions
+//     fetchProfileData,
+//     fetchProfileImage, // Add profile image fetch function
+//     updateProfile,
+//     uploadProfileImage,
+//     changePassword,
+//     updateProfileField,
+//     fetchAddresses,
+//     createAddress,
+//     updateAddress,
+//     deleteAddress,
+//     getSingleAddress,
+//     fetchRoles,
+//     showToast,
+//     removeToast,
+//     resetState
+//   };
+
+//   return (
+//     <ProfileContext.Provider value={contextValue}>
+//       {children}
+//     </ProfileContext.Provider>
+//   );
+// };
+
+// // ===== CUSTOM HOOK =====
+// export const useProfile = () => {
+//   const context = useContext(ProfileContext);
+//   if (!context) {
+//     throw new Error('useProfile must be used within a ProfileProvider');
+//   }
+//   return context;
+// };
+
+// export default ProfileContext;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // src/context/ProfileContext.js
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import * as dashboardAPI from '../services/dashboard';
@@ -6,10 +1021,12 @@ import { useAuth } from './AuthContext';
 // ===== CONSTANTS =====
 const initialState = {
   profileData: null,
+  profileImageUrl: null, // Add profile image URL to state
   addresses: [],
   roles: [],
   loading: {
     profile: false,
+    profileImage: false, // Add profile image loading state
     addresses: false,
     roles: false,
     uploadingImage: false,
@@ -19,11 +1036,13 @@ const initialState = {
   },
   errors: {
     profile: null,
+    profileImage: null, // Add profile image error state
     addresses: null,
     roles: null,
   },
   fetched: {
     profile: false,
+    profileImage: false, // Add profile image fetched flag
     addresses: false,
     roles: false,
   },
@@ -35,6 +1054,7 @@ const ACTIONS = {
   SET_DATA: 'SET_DATA',
   SET_ERROR: 'SET_ERROR',
   SET_FETCHED: 'SET_FETCHED',
+  SET_PROFILE_IMAGE_URL: 'SET_PROFILE_IMAGE_URL', // Add action for profile image URL
   UPDATE_PROFILE_FIELD: 'UPDATE_PROFILE_FIELD',
   ADD_ADDRESS: 'ADD_ADDRESS',
   UPDATE_ADDRESS: 'UPDATE_ADDRESS',
@@ -73,6 +1093,15 @@ const profileReducer = (state, action) => {
       return {
         ...state,
         fetched: { ...state.fetched, [action.key]: action.payload }
+      };
+
+    case ACTIONS.SET_PROFILE_IMAGE_URL:
+      return {
+        ...state,
+        profileImageUrl: action.payload,
+        loading: { ...state.loading, profileImage: false },
+        errors: { ...state.errors, profileImage: null },
+        fetched: { ...state.fetched, profileImage: true }
       };
 
     case ACTIONS.UPDATE_PROFILE_FIELD:
@@ -117,6 +1146,10 @@ const profileReducer = (state, action) => {
       };
 
     case ACTIONS.RESET_STATE:
+      // Clean up any existing profile image URL when resetting
+      if (state.profileImageUrl) {
+        URL.revokeObjectURL(state.profileImageUrl);
+      }
       return initialState;
 
     default:
@@ -174,6 +1207,33 @@ export const ProfileContextProvider = ({ children }) => {
     }
   };
 
+  // ===== PROFILE IMAGE FUNCTIONS =====
+  const fetchProfileImage = async (force = false) => {
+    if (!auth.isAuthenticated) return null;
+    if (state.fetched.profileImage && !force) return state.profileImageUrl;
+
+    dispatch({ type: ACTIONS.SET_LOADING, key: 'profileImage', payload: true });
+    
+    try {
+      const imageRes = await dashboardAPI.downloadProfileImageApi();
+      
+      // Clean up previous image URL if it exists
+      if (state.profileImageUrl) {
+        URL.revokeObjectURL(state.profileImageUrl);
+      }
+      
+      const imgUrl = URL.createObjectURL(imageRes.data);
+      dispatch({ type: ACTIONS.SET_PROFILE_IMAGE_URL, payload: imgUrl });
+      
+      return imgUrl;
+    } catch (error) {
+      console.error("Error fetching profile image:", error);
+      dispatch({ type: ACTIONS.SET_ERROR, key: 'profileImage', payload: "Failed to load profile image" });
+      dispatch({ type: ACTIONS.SET_PROFILE_IMAGE_URL, payload: null });
+      return null;
+    }
+  };
+
   // ===== PROFILE FUNCTIONS =====
   const fetchProfileData = async (force = false) => {
     if (!auth.isAuthenticated) return null;
@@ -187,13 +1247,16 @@ export const ProfileContextProvider = ({ children }) => {
     );
   };
 
+  // UPDATED: Single API call for both profile data and image
   const updateProfile = async (updatedData) => {
     const formData = new FormData();
     
+    // Handle profile image if it exists
     if (updatedData.profile_image instanceof File) {
       formData.append('profile_image', updatedData.profile_image);
     }
     
+    // Add all other profile fields to FormData
     Object.keys(updatedData).forEach(key => {
       if (key !== 'profile_image' && updatedData[key] !== null && updatedData[key] !== undefined) {
         formData.append(key, updatedData[key]);
@@ -207,10 +1270,18 @@ export const ProfileContextProvider = ({ children }) => {
       "Profile updated successfully!"
     );
     
-    dispatch({ type: ACTIONS.SET_DATA, key: 'profileData', payload: updatedData });
+    // Update the profile data in state (but exclude the File object)
+    const dataForState = { ...updatedData };
+    if (dataForState.profile_image instanceof File) {
+      delete dataForState.profile_image;
+    }
+    
+    dispatch({ type: ACTIONS.SET_DATA, key: 'profileData', payload: dataForState });
+    
     return result;
   };
 
+  // DEPRECATED: Keep for backward compatibility but not used in new flow
   const uploadProfileImage = async (file) => {
     const formData = new FormData();
     formData.append('profile_image', file);
@@ -222,7 +1293,11 @@ export const ProfileContextProvider = ({ children }) => {
       "Profile image updated successfully!"
     );
     
-    await fetchProfileData(true);
+    // Refresh both profile data and profile image after upload
+    await Promise.all([
+      fetchProfileData(true),
+      fetchProfileImage(true)
+    ]);
   };
 
   const changePassword = async (passwordData) => {
@@ -315,24 +1390,36 @@ export const ProfileContextProvider = ({ children }) => {
       if (!state.fetched.profile) fetchProfileData();
       if (!state.fetched.addresses) fetchAddresses();
       if (!state.fetched.roles) fetchRoles();
+      if (!state.fetched.profileImage) fetchProfileImage();
     }
   }, [auth.isAuthenticated]);
 
   useEffect(() => {
-    if (!auth.isAuthenticated && (state.fetched.profile || state.fetched.addresses || state.fetched.roles)) {
+    if (!auth.isAuthenticated && (state.fetched.profile || state.fetched.addresses || state.fetched.roles || state.fetched.profileImage)) {
       resetState();
     }
   }, [auth.isAuthenticated]);
+
+  // Clean up profile image URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (state.profileImageUrl) {
+        URL.revokeObjectURL(state.profileImageUrl);
+      }
+    };
+  }, []);
 
   // ===== CONTEXT VALUE =====
   const contextValue = {
     // State (destructured for easier access)
     profileData: state.profileData,
+    profileImageUrl: state.profileImageUrl,
     addresses: state.addresses,
     roles: state.roles,
     
     // Loading states
     profileLoading: state.loading.profile,
+    profileImageLoading: state.loading.profileImage,
     addressesLoading: state.loading.addresses,
     rolesLoading: state.loading.roles,
     uploadingImage: state.loading.uploadingImage,
@@ -342,11 +1429,13 @@ export const ProfileContextProvider = ({ children }) => {
     
     // Error states
     profileError: state.errors.profile,
+    profileImageError: state.errors.profileImage,
     addressesError: state.errors.addresses,
     rolesError: state.errors.roles,
     
     // Fetched flags
     profileFetched: state.fetched.profile,
+    profileImageFetched: state.fetched.profileImage,
     addressesFetched: state.fetched.addresses,
     rolesFetched: state.fetched.roles,
     
@@ -355,8 +1444,9 @@ export const ProfileContextProvider = ({ children }) => {
     
     // Actions
     fetchProfileData,
-    updateProfile,
-    uploadProfileImage,
+    fetchProfileImage,
+    updateProfile, // This now handles both data and image
+    uploadProfileImage, // Kept for backward compatibility
     changePassword,
     updateProfileField,
     fetchAddresses,

@@ -15,7 +15,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0"
+          className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0 cursor-pointer"
           aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
         >
           <FiMenu size={18} className="text-gray-600" />
@@ -33,7 +33,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
               className="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded-lg"
             />
           </div>
-          <div className="min-w-0 hidden xs:block">
+          <div className="min-w-0 block xs:block">
             <h1 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
               Taxita
             </h1>
@@ -57,13 +57,13 @@ const Navbar = ({ isOpen, setIsOpen }) => {
         </div>
 
         {/* Notifications */}
-        <button className="relative flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0">
+        <button className="relative flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0 cursor-pointer">
           <FiBell size={18} className="text-gray-600" />
           <span className="absolute top-2 right-2 block h-2 w-2 bg-red-500 rounded-full ring-2 ring-white" />
         </button>
 
         {/* Trading year dropdown - Hidden on small mobile */}
-        <div className="hidden sm:block">
+        <div className="block ">
           <PreviousTradingYear />
         </div>
 

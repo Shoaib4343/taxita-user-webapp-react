@@ -173,7 +173,7 @@ const CustomDropdown = ({
       {/* Dropdown Menu */}
       {isOpen && !disabled && (
         <div 
-          className={`absolute z-50 w-full min-w-[16rem] mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden ${dropdownClassName}`} 
+          className={`absolute z-[99999] w-full min-w-[16rem] mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden ${dropdownClassName}`} 
           style={{ maxHeight }}
         >
           {shouldShowSearch && (

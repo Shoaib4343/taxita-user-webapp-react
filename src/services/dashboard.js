@@ -83,6 +83,11 @@ export const plainsApi = () => axiosInstance.get("/plans");
 export const previousTradingYearApi = () =>
   axiosInstance.get("/previous-trading-years");
 
+// Get trading years with detailed info including IDs (for finalize functionality)
+export const tradingYearsWithDetailsApi = () =>
+  axiosInstance.get("/tradingyears");
+
+
 // register-trading-year
 export const registerTradingYearApi = (data) => {
   return axiosInstance.post("/register-trading-year", data);
@@ -94,6 +99,11 @@ export const activateTradingYearApi = (data) => {
 };
 
 
+
+// finalize-trading-year
+export const finalizeTradingYearApi = (data) => {
+  return axiosInstance.post("/trading-year/finalize", data);
+};
 
 
 
@@ -277,6 +287,11 @@ export const getRolesApi = () => {
 
 
 
+// Get Local Councils API
+export const getLocalCouncilsApi = () => {
+  return axiosInstance.get("/local-councils");
+};
+
 
 // ------------------------------------------ Get  profile image -----------------------------------
 
@@ -285,15 +300,15 @@ export const getProfileImage = () =>{
   return axiosInstance.get("/get-profile-image")
 }
 
-// {
-// 	"success": true,
-// 	"data": [
-// 		{
-// 			"profile_image": "https://taxitaapi.learnify.pk/public/storage//Profile-image.jpg"
-// 		}
-// 	]
-// }
 
+
+
+// /profile-image-download
+export const downloadProfileImageApi = () => {
+  return axiosInstance.get(`/profile-image-download`, {
+    responseType: 'blob'  // This tells Axios to handle binary data
+  });
+};
 
 
 
@@ -389,48 +404,359 @@ export const getProfitAndLoss = ()=>{
 
 
 
+
+
+// ------------------------------------------ NI UTR    -----------------------------------
+
+// utr/apply method Post
+export const applyUTRapi = (data)=>{
+  return axiosInstance.post(`/utr/apply`,data)
+}
+
+
+// your_name : Muhammad Ishaq
+// contact_number :999999999999
+// your_message : apply for utr
+
 // {
-// 	"total_income": 3000,
-// 	"fuel": 0,
-// 	"oil": 654,
-// 	"car_tax": 0,
-// 	"insurance": 0,
-// 	"servicing_repairs": 0,
-// 	"tyres": 0,
-// 	"vehicle_rental_lease": 0,
-// 	"vehicle_loan_interest": 0,
-// 	"other_motor_expenses": 0,
-// 	"sub_total_motor_expenses": 654,
-// 	"radio_rent": 0,
-// 	"radio": 0,
-// 	"capital_allowances": 0,
-// 	"percentage_adj": {
-// 		"private_use_adj_car": 4,
-// 		"private_use_adj_phone": 3,
-// 		"radio_rent_cash": 5,
-// 		"radio_rent_card_bank": 5,
-// 		"radio_rent_acc_contract": 8,
-// 		"radio_rent_sub_contract": 7
-// 	},
-// 	"total_radio_rent": 3000,
-// 	"mobile_telephone_costs": 0,
-// 	"driver_licence_badge_medical": 0,
-// 	"repair_renewals_equipment": 0,
-// 	"legal_accountancy_costs": 0,
-// 	"car_cleaning_valeting": 0,
-// 	"wages_to_employee": 0,
-// 	"use_of_home_as_office": 0,
-// 	"misc_sundry_expenses": 0,
-// 	"parking_toll_charges": 0,
-// 	"sub_total_additional_expenses": 0,
-// 	"sub_total_motor_additional_expenses": 3000,
-// 	"total_expenses": 3654,
-// 	"net_profit_loss": -654,
-// 	"add_private_use_adjustment_car": 26.160000000000000142108547152020037174224853515625,
-// 	"add_private_use_adjustment_telephone": 0,
-// 	"vehicle_disposal": 0,
-// 	"total_net_balance": -627.8400000000000318323145620524883270263671875
+// 	"success": true,
+// 	"message": "Your application has been successfully submitted, stay tuned.",
+// 	"data": {
+  // 		"user_id": 2,
+// 		"your_name": "Muhammad Ishaq",
+// 		"contact_number": "999999999999",
+// 		"your_message": "apply for utr",
+// 		"status": 0,
+// 		"updated_at": "2025-09-24T07:44:18.000000Z",
+// 		"created_at": "2025-09-24T07:44:18.000000Z",
+// 		"id": 3
+// 	}
 // }
 
 
 
+
+
+
+
+
+
+
+// /utr/store method Post
+export const storeUTRapi = (data)=>{
+  return axiosInstance.post(`/utr/store`,data)
+}
+
+// body
+// national_insurance : QQ123456C
+// unique_tax_reference : 1234567890
+
+
+// {
+// 	"success": true,
+// 	"message": "UTR details saved successfully",
+// 	"data": {
+// 		"id": 1,
+// 		"user_id": 2,
+// 		"national_insurance": "QQ123456C",
+// 		"unique_tax_reference": "1234567890",
+// 		"created_at": "2025-09-24T07:09:58.000000Z",
+// 		"updated_at": "2025-09-24T07:09:58.000000Z"
+// 	}
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// /utr/show
+export const showUTRapi = ()=>{
+  return axiosInstance.get("/utr/show")
+}
+
+
+// {
+// 	"success": true,
+// 	"data": {
+// 		"id": 1,
+// 		"user_id": 2,
+// 		"national_insurance": "QQ123456C",
+// 		"unique_tax_reference": "1234567890",
+// 		"created_at": "2025-09-24T07:09:58.000000Z",
+// 		"updated_at": "2025-09-24T07:09:58.000000Z"
+// 	}
+// }
+
+
+
+
+
+
+
+
+
+// --------------------------------------------------/accounts ----------------------------------------
+
+
+
+
+// /accounts
+export const getAccountsApi = ()=>{
+  return axiosInstance.get("/accounts")
+}
+
+
+
+// account response real data this is teh real response in the api i just apst it 
+// [
+// 	{
+// 		"id": 1,
+// 		"type_id": 1,
+// 		"name": "Cash Account",
+// 		"short_name": "cash_account",
+// 		"category_name": "Income",
+// 		"description": "Cash Account",
+// 		"created_at": "2021-07-17T23:24:21.000000Z",
+// 		"updated_at": "2021-07-18T00:39:11.000000Z"
+// 	},
+// 	{
+// 		"id": 2,
+// 		"type_id": 1,
+// 		"name": "Card Account",
+// 		"short_name": "card_account",
+// 		"category_name": "Income",
+// 		"description": "Card Account",
+// 		"created_at": "2021-07-17T23:24:32.000000Z",
+// 		"updated_at": "2021-07-17T23:24:32.000000Z"
+// 	},
+// 	{
+// 		"id": 3,
+// 		"type_id": 1,
+// 		"name": "Contract Account",
+// 		"short_name": "contract_account",
+// 		"category_name": "Income",
+// 		"description": "Contract Account",
+// 		"created_at": "2021-07-17T23:24:50.000000Z",
+// 		"updated_at": "2021-07-17T23:24:50.000000Z"
+// 	},
+// 	{
+// 		"id": 4,
+// 		"type_id": 1,
+// 		"name": "Sub Contract Account",
+// 		"short_name": "sub_contract_account",
+// 		"category_name": "Income",
+// 		"description": "Sub Contract Account",
+// 		"created_at": "2021-07-17T23:25:03.000000Z",
+// 		"updated_at": "2021-07-17T23:25:03.000000Z"
+// 	},
+// 	{
+// 		"id": 5,
+// 		"type_id": 1,
+// 		"name": "Rental Income Account",
+// 		"short_name": "rental_income_account",
+// 		"category_name": "Rental Income",
+// 		"description": "Rental Income Account",
+// 		"created_at": "2021-07-17T23:25:21.000000Z",
+// 		"updated_at": "2021-07-17T23:25:21.000000Z"
+// 	},
+// 	{
+// 		"id": 6,
+// 		"type_id": 2,
+// 		"name": "Fuel",
+// 		"short_name": "fuel",
+// 		"category_name": "Motor Expenses",
+// 		"description": "Fuel",
+// 		"created_at": "2021-07-17T23:26:42.000000Z",
+// 		"updated_at": "2021-07-17T23:26:42.000000Z"
+// 	},
+// 	{
+// 		"id": 7,
+// 		"type_id": 2,
+// 		"name": "Oil",
+// 		"short_name": "oil",
+// 		"category_name": "Motor Expenses",
+// 		"description": "Oil",
+// 		"created_at": "2021-07-17T23:26:53.000000Z",
+// 		"updated_at": "2021-07-17T23:26:53.000000Z"
+// 	},
+// 	{
+// 		"id": 8,
+// 		"type_id": 2,
+// 		"name": "Car Tax",
+// 		"short_name": "car_tax",
+// 		"category_name": "Motor Expenses",
+// 		"description": "Car Tax",
+// 		"created_at": "2021-07-17T23:27:02.000000Z",
+// 		"updated_at": "2021-07-17T23:27:02.000000Z"
+// 	},
+// 	{
+// 		"id": 9,
+// 		"type_id": 2,
+// 		"name": "Insurance",
+// 		"short_name": "insurance",
+// 		"category_name": "Motor Expenses",
+// 		"description": "Insurance",
+// 		"created_at": "2021-07-17T23:27:10.000000Z",
+// 		"updated_at": "2021-07-17T23:27:10.000000Z"
+// 	},
+// 	{
+// 		"id": 10,
+// 		"type_id": 2,
+// 		"name": "Servicing / Repairs",
+// 		"short_name": "servicing_repairs",
+// 		"category_name": "Motor Expenses",
+// 		"description": "Servicing / Repairs",
+// 		"created_at": "2021-07-17T23:27:21.000000Z",
+// 		"updated_at": "2021-07-17T23:27:21.000000Z"
+// 	},
+// 	{
+// 		"id": 11,
+// 		"type_id": 2,
+// 		"name": "Tyres",
+// 		"short_name": "tyres",
+// 		"category_name": "Motor Expenses",
+// 		"description": "Tyres",
+// 		"created_at": "2021-07-17T23:27:32.000000Z",
+// 		"updated_at": "2021-07-17T23:27:32.000000Z"
+// 	},
+// 	{
+// 		"id": 12,
+// 		"type_id": 2,
+// 		"name": "Vehicle Rental Lease",
+// 		"short_name": "vehicle_rental_lease",
+// 		"category_name": "Motor Expenses",
+// 		"description": "Vehicle Rental Lease",
+// 		"created_at": "2021-07-17T23:27:42.000000Z",
+// 		"updated_at": "2021-07-17T23:27:42.000000Z"
+// 	},
+// 	{
+// 		"id": 13,
+// 		"type_id": 2,
+// 		"name": "Vehicle loan interest",
+// 		"short_name": "vehicle_loan_interest",
+// 		"category_name": "Motor Expenses",
+// 		"description": "Vehicle loan interest",
+// 		"created_at": "2021-07-17T23:27:55.000000Z",
+// 		"updated_at": "2021-07-17T23:27:55.000000Z"
+// 	},
+// 	{
+// 		"id": 14,
+// 		"type_id": 2,
+// 		"name": "Other motor expenses",
+// 		"short_name": "other_motor_expenses",
+// 		"category_name": "Motor Expenses",
+// 		"description": "Other motor expenses",
+// 		"created_at": "2021-07-17T23:28:10.000000Z",
+// 		"updated_at": "2021-07-17T23:28:10.000000Z"
+// 	},
+// 	{
+// 		"id": 15,
+// 		"type_id": 2,
+// 		"name": "Radio Rent / Commission fee / Subscription fee",
+// 		"short_name": "radio_rent",
+// 		"category_name": "Radio Expenses",
+// 		"description": "Radio Rent / Commission fee / Subscription fee",
+// 		"created_at": "2021-07-17T23:31:34.000000Z",
+// 		"updated_at": "2021-07-17T23:31:34.000000Z"
+// 	},
+// 	{
+// 		"id": 16,
+// 		"type_id": 2,
+// 		"name": "Mobile / Telephone costs",
+// 		"short_name": "mobile_telephone_costs",
+// 		"category_name": "Additional Expenses",
+// 		"description": "Mobile / Telephone costs",
+// 		"created_at": "2021-07-17T23:31:43.000000Z",
+// 		"updated_at": "2021-07-17T23:31:43.000000Z"
+// 	},
+// 	{
+// 		"id": 17,
+// 		"type_id": 2,
+// 		"name": "Driver / Licences / Badge / Medical",
+// 		"short_name": "driver_licence_badge_medical",
+// 		"category_name": "Additional Expenses",
+// 		"description": "Driver / Licences / Badge / Medical",
+// 		"created_at": "2021-07-17T23:31:52.000000Z",
+// 		"updated_at": "2021-07-17T23:31:52.000000Z"
+// 	},
+// 	{
+// 		"id": 18,
+// 		"type_id": 2,
+// 		"name": "Repairs / Renewals to equipment",
+// 		"short_name": "repair_renewals_equipment",
+// 		"category_name": "Additional Expenses",
+// 		"description": "Repairs / Renewals to equipment",
+// 		"created_at": "2021-07-17T23:32:02.000000Z",
+// 		"updated_at": "2021-07-17T23:32:02.000000Z"
+// 	},
+// 	{
+// 		"id": 19,
+// 		"type_id": 2,
+// 		"name": "Legal and accountancy costs",
+// 		"short_name": "legal_accountancy_costs",
+// 		"category_name": "Additional Expenses",
+// 		"description": "Legal and accountancy costs",
+// 		"created_at": "2021-07-17T23:32:11.000000Z",
+// 		"updated_at": "2021-07-17T23:32:11.000000Z"
+// 	},
+// 	{
+// 		"id": 20,
+// 		"type_id": 2,
+// 		"name": "Car cleaning / Valeting",
+// 		"short_name": "car_cleaning_valeting",
+// 		"category_name": "Additional Expenses",
+// 		"description": "Car cleaning / Valeting",
+// 		"created_at": "2021-07-17T23:32:20.000000Z",
+// 		"updated_at": "2021-07-17T23:32:20.000000Z"
+// 	},
+// 	{
+// 		"id": 21,
+// 		"type_id": 2,
+// 		"name": "Wages to employee",
+// 		"short_name": "wages_to_employee",
+// 		"category_name": "Additional Expenses",
+// 		"description": "Wages to employee",
+// 		"created_at": "2021-07-17T23:32:29.000000Z",
+// 		"updated_at": "2021-07-17T23:32:29.000000Z"
+// 	},
+// 	{
+// 		"id": 22,
+// 		"type_id": 2,
+// 		"name": "Use of home as office",
+// 		"short_name": "use_of_home_as_office",
+// 		"category_name": "Additional Expenses",
+// 		"description": "Use of home as office",
+// 		"created_at": "2021-07-17T23:32:40.000000Z",
+// 		"updated_at": "2021-07-17T23:32:40.000000Z"
+// 	},
+// 	{
+// 		"id": 23,
+// 		"type_id": 2,
+// 		"name": "Misc / Sundry expenses",
+// 		"short_name": "misc_sundry_expenses",
+// 		"category_name": "Additional Expenses",
+// 		"description": "Misc / Sundry expenses",
+// 		"created_at": "2021-07-17T23:32:48.000000Z",
+// 		"updated_at": "2021-07-17T23:32:48.000000Z"
+// 	},
+// 	{
+// 		"id": 24,
+// 		"type_id": 2,
+// 		"name": "Parking / Toll charges",
+// 		"short_name": "parking_toll_charges",
+// 		"category_name": "Additional Expenses",
+// 		"description": "Parking / Toll charges",
+// 		"created_at": "2021-07-17T23:32:58.000000Z",
+// 		"updated_at": "2021-07-17T23:32:58.000000Z"
+// 	}
+// ]

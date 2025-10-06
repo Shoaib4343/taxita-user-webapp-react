@@ -26,6 +26,10 @@ import PersonalDetails from "./pages/PersonalDetails";
 import NotFoundPage from "./pages/NotFoundPage";
 import ResetPassword from "./pages/ResetPassword";
 import Image from "./pages/Image";
+import UTR from "./pages/profile/UTR";
+import SecuritySettings from "./pages/profile/SecuritySettings";
+import AddressManagement from "./pages/profile/AddressManagement";
+import ProfileInformation from "./pages/profile/ProfileInformation";
 
 const App = () => {
   return (
@@ -67,7 +71,11 @@ const App = () => {
           <Route path="id-documents" element={<IDDocuments />} />
           <Route path="buy-renew-plan" element={<BuyPlan />} />
           <Route path="tax-year" element={<FinalizeTaxYear />} />
-          <Route path="personal-details" element={<PersonalDetails />} />
+          {/* <Route path="personal-details" element={<PersonalDetails />} /> */}
+          <Route path="ni&utr" element={<UTR />} />
+          <Route path="security-settings" element={<SecuritySettings />} />
+          <Route path="address-management" element={<AddressManagement />} />
+          <Route path="profile-information" element={<ProfileInformation />} />
           <Route path="image" element={<Image />} />
 
         </Route>

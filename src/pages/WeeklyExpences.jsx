@@ -81,7 +81,8 @@ const WeeklyExpenses = () => {
         setWeeklyData(merged);
         // Only show toast on first successful load or if we have data
         if (!hasFetched && merged.length > 0) {
-          toast.success("Weekly expenses data loaded successfully!");
+          console.log("Weekly expenses data loaded successfully!");
+          // toast.success("Weekly expenses data loaded successfully!");
         }
         setHasFetched(true);
       } else {

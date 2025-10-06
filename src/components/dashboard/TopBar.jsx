@@ -65,16 +65,16 @@ export const TopBar = () => {
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
             <span className="text-sm font-bold">🚀 {greeting}, {auth?.user?.first_name || "User"} !</span>
-            <span className="text-xs text-stone-500">{getFormattedDate()}</span>
+            <span className="text-xs text-stone-500">Today {getFormattedDate()}</span>
           </div>
 
-          <button
+          {/* <button
             className="flex text-sm items-center gap-2 bg-stone-100 transition-colors hover:bg-violet-100 hover:text-violet-700 px-3 py-1.5 rounded"
             aria-label="Filter by previous 6 months"
           >
             <FiCalendar className="text-base" />
             <span>Prev 6 Months</span>
-          </button>
+          </button> */}
         </div>
       </div>
 

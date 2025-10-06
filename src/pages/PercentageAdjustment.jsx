@@ -205,7 +205,8 @@ const PercentageAdjustment = () => {
           subContract: data.radio_rent_sub_contract?.toString() || "",
         });
 
-        toast.success("Existing data loaded successfully!");
+        // toast.success("Existing data loaded successfully!");
+        console.log("Existing data loaded successfully!");
       }
     } catch (error) {
       console.log("No existing data found, starting with empty form");
